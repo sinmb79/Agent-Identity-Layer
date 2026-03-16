@@ -1,0 +1,61 @@
+{
+  "version": "ail.v0",
+  "agent": {
+    "id": "agent_main_01",
+    "display_name": "Julie",
+    "role": "operations_assistant",
+    "provider": "openai",
+    "runtime": "openclaw",
+    "owner": {
+      "type": "workspace",
+      "id": "22b_openclaw_main"
+    }
+  },
+  "delegation": {
+    "mode": "direct",
+    "delegated_by": null,
+    "approved_by": {
+      "type": "human",
+      "id": "boss"
+    },
+    "chain_depth": 0,
+    "task_ref": "chat:telegram:226731503"
+  },
+  "scope": {
+    "workspace": [
+      "C:\\Users\\sinmb\\.openclaw\\workspace"
+    ],
+    "repos": [],
+    "network": "restricted",
+    "secrets": "indirect",
+    "write_access": true,
+    "approval_policy": {
+      "irreversible_actions": "human_required",
+      "external_posting": "human_required",
+      "destructive_file_ops": "human_required"
+    }
+  },
+  "runtime": {
+    "session_id": "agent:main:telegram:direct:226731503",
+    "run_id": "run_main_20260317_0805",
+    "surface": "telegram",
+    "host": "22B",
+    "cwd": "C:\\Users\\sinmb\\.openclaw\\workspace",
+    "time": "2026-03-17T08:05:00+09:00"
+  },
+  "verification": {
+    "strength": "local_runtime_asserted",
+    "evidence": [
+      "runtime_session_binding",
+      "workspace_path_match"
+    ],
+    "signed": false,
+    "attestation_ref": null
+  },
+  "extensions": {
+    "openclaw": {
+      "channel": "telegram",
+      "chat_type": "direct"
+    }
+  }
+}

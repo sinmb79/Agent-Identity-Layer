@@ -1,0 +1,67 @@
+{
+  "version": "ail.v0",
+  "agent": {
+    "id": "agent_codexcoder_01",
+    "display_name": "CodexCoder",
+    "role": "implementation_engineer",
+    "provider": "openai",
+    "runtime": "codex",
+    "owner": {
+      "type": "company",
+      "id": "22b_labs"
+    }
+  },
+  "delegation": {
+    "mode": "delegated",
+    "delegated_by": {
+      "agent_id": "agent_cto_01",
+      "run_id": "run_cto_20260316_1127"
+    },
+    "approved_by": {
+      "type": "human",
+      "id": "boss"
+    },
+    "chain_depth": 2,
+    "task_ref": "issue:BLA-12"
+  },
+  "scope": {
+    "workspace": [
+      "C:\\Users\\sinmb\\.openclaw\\workspace"
+    ],
+    "repos": [
+      "Agent-Identity-Layer"
+    ],
+    "network": "restricted",
+    "secrets": "none",
+    "write_access": true,
+    "approval_policy": {
+      "irreversible_actions": "human_required",
+      "external_posting": "human_required",
+      "destructive_file_ops": "human_required"
+    }
+  },
+  "runtime": {
+    "session_id": "paperclip-company-22b-labs",
+    "run_id": "run_codexcoder_20260317_0810",
+    "surface": "local_control_plane",
+    "host": "22B",
+    "cwd": "C:\\Users\\sinmb\\.openclaw\\workspace\\Agent-Identity-Layer",
+    "time": "2026-03-17T08:10:00+09:00"
+  },
+  "verification": {
+    "strength": "platform_asserted",
+    "evidence": [
+      "company_agent_registry",
+      "delegation_parent_present",
+      "workspace_scope_match"
+    ],
+    "signed": false,
+    "attestation_ref": null
+  },
+  "extensions": {
+    "paperclip": {
+      "company": "22B Labs",
+      "project": "Founder Office"
+    }
+  }
+}

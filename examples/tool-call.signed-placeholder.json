@@ -1,0 +1,67 @@
+{
+  "version": "ail.v0",
+  "agent": {
+    "id": "agent_claudecoder_01",
+    "display_name": "ClaudeCoder",
+    "role": "review_engineer",
+    "provider": "anthropic",
+    "runtime": "claude_code",
+    "owner": {
+      "type": "company",
+      "id": "22b_labs"
+    }
+  },
+  "delegation": {
+    "mode": "delegated",
+    "delegated_by": {
+      "agent_id": "agent_ceo_01",
+      "run_id": "run_ceo_20260317_0814"
+    },
+    "approved_by": {
+      "type": "human",
+      "id": "boss"
+    },
+    "chain_depth": 1,
+    "task_ref": "project:founder-office"
+  },
+  "scope": {
+    "workspace": [
+      "C:\\Users\\sinmb\\.openclaw\\workspace"
+    ],
+    "repos": [
+      "paperclip"
+    ],
+    "network": "none",
+    "secrets": "none",
+    "write_access": false,
+    "approval_policy": {
+      "irreversible_actions": "not_allowed",
+      "external_posting": "not_allowed",
+      "destructive_file_ops": "human_required"
+    }
+  },
+  "runtime": {
+    "session_id": "review-session-20260317",
+    "run_id": "run_claudecoder_20260317_0815",
+    "surface": "cli",
+    "host": "22B",
+    "cwd": "C:\\Users\\sinmb\\paperclip",
+    "time": "2026-03-17T08:15:00+09:00"
+  },
+  "verification": {
+    "strength": "cryptographically_signed",
+    "evidence": [
+      "platform_agent_registry",
+      "signature_attached",
+      "delegation_parent_present"
+    ],
+    "signed": true,
+    "attestation_ref": "sig:placeholder:sha256:example"
+  },
+  "extensions": {
+    "tool": {
+      "name": "read_repo",
+      "intent": "review_only"
+    }
+  }
+}
