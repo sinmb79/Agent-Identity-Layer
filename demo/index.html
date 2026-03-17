@@ -3,57 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agent Identity Fingerprint</title>
+  <title>Agent Identity Signal Glyphs</title>
   <style>
     :root {
-      --bg: #07101f;
-      --panel: #0f1b33;
-      --line: #24385e;
-      --text: #edf2ff;
-      --muted: #9fb0d9;
-      --blue: #60a5fa;
-      --green: #34d399;
-      --amber: #fbbf24;
-      --red: #f87171;
-      --violet: #a78bfa;
+      --bg: #07101f; --panel: #0f1b33; --line: #24385e; --text: #edf2ff; --muted: #9fb0d9;
+      --blue: #60a5fa; --green: #34d399; --amber: #fbbf24; --red: #f87171; --violet: #a78bfa;
     }
     * { box-sizing: border-box; }
     body { margin: 0; font-family: Inter, Arial, sans-serif; background: radial-gradient(circle at top, #12254a 0%, var(--bg) 48%); color: var(--text); }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    h1, h2, h3, p { margin: 0; }
-    .sub { color: var(--muted); margin-top: 8px; margin-bottom: 18px; }
-    .layout { display: grid; grid-template-columns: 260px 1fr; gap: 18px; }
-    .panel { background: rgba(15,27,51,.92); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.22); }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
+    h1,h2,h3,p { margin: 0; }
+    .sub { color: var(--muted); margin: 8px 0 18px; }
+    .layout { display: grid; grid-template-columns: 250px 1fr; gap: 18px; }
+    .panel { background: rgba(15,27,51,.94); border: 1px solid var(--line); border-radius: 18px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.22); }
     .examples button { width: 100%; margin-bottom: 10px; border: 1px solid #35528a; background: #142448; color: white; border-radius: 12px; padding: 12px; text-align: left; cursor: pointer; }
     .examples button:hover { background: #1b2f5d; }
-    .stage { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; }
-    .hero { display: grid; grid-template-columns: 300px 1fr; gap: 18px; }
-    .fingerprint-wrap { display:flex; align-items:center; justify-content:center; }
-    .identity-card { display:grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-top: 14px; }
-    .mini { background: #0a1429; border: 1px solid #20345a; border-radius: 12px; padding: 12px; }
-    .mini .k { color: var(--muted); font-size: 12px; margin-bottom: 5px; }
-    .mini .v { font-size: 14px; font-weight: 600; word-break: break-word; }
-    .lineage { margin-top: 18px; display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
-    .node { padding: 10px 14px; border-radius: 999px; border: 1px solid #375488; background:#14264d; }
-    .arrow { color: var(--muted); }
-    .bars { display:grid; gap: 12px; margin-top: 14px; }
+    .top { display:grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+    .pills { display:flex; gap:8px; flex-wrap: wrap; }
+    .pill { padding: 6px 10px; border-radius: 999px; font-size: 12px; border:1px solid #35528a; background:#132346; }
+    .glyphs { display:grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 18px; }
+    .glyph { background:#0a1429; border:1px solid #20345a; border-radius: 16px; padding: 12px; }
+    .glyph h3 { margin-bottom: 8px; }
+    .glyph p { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+    .metrics { display:grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 18px; }
+    .mini { background:#0a1429; border:1px solid #20345a; border-radius: 12px; padding: 12px; }
+    .k { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .v { font-weight: 700; }
+    .bars { display:grid; gap: 12px; margin-top: 18px; }
     .bar label { display:flex; justify-content:space-between; color: var(--muted); font-size: 13px; margin-bottom: 6px; }
     .track { height: 12px; background:#091224; border:1px solid #223861; border-radius:999px; overflow:hidden; }
     .fill { height:100%; border-radius:999px; }
-    .pill-row { margin-top: 10px; display:flex; gap:8px; flex-wrap: wrap; }
-    .pill { padding: 6px 10px; border-radius: 999px; font-size: 12px; border:1px solid #35528a; background:#132346; }
-    pre { margin-top: 16px; white-space: pre-wrap; word-break: break-word; background:#081121; border:1px solid #20345a; padding: 14px; border-radius: 14px; max-height: 280px; overflow:auto; }
-    .caption { color: var(--muted); font-size: 13px; margin-top: 10px; }
-    svg { max-width: 100%; height: auto; }
-    @media (max-width: 980px) {
-      .layout, .stage, .hero { grid-template-columns: 1fr; }
-    }
+    pre { margin-top: 16px; white-space: pre-wrap; word-break: break-word; background:#081121; border:1px solid #20345a; padding: 14px; border-radius: 14px; max-height: 220px; overflow:auto; }
+    svg { width:100%; height:auto; display:block; }
+    @media (max-width: 980px) { .layout, .glyphs, .metrics { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Agent Identity Fingerprint</h1>
-    <p class="sub">22B Labs · first public project · visual identity signal board</p>
+    <h1>Agent Identity Signal Glyphs</h1>
+    <p class="sub">One glance should reveal personality, authority, risk, and provenance.</p>
     <div class="layout">
       <div class="panel examples">
         <h3>Examples</h3>
@@ -62,140 +50,186 @@
         <button data-file="delegated-coding-agent.json">Delegated coding agent</button>
         <button data-file="tool-call.signed-placeholder.json">Signed tool-call placeholder</button>
       </div>
-      <div class="stage">
-        <div class="panel">
-          <div class="hero">
-            <div class="fingerprint-wrap">
-              <svg id="fingerprint" viewBox="0 0 260 320" aria-label="identity fingerprint"></svg>
-            </div>
-            <div>
-              <h2 id="title">Loading...</h2>
-              <p id="summary" class="sub">Visual identity pattern</p>
-              <div class="pill-row">
-                <span class="pill" id="pVersion"></span>
-                <span class="pill" id="pMode"></span>
-                <span class="pill" id="pVerification"></span>
-              </div>
-              <div class="identity-card" id="cards"></div>
-            </div>
+      <div class="panel">
+        <div class="top">
+          <div>
+            <h2 id="title">Loading…</h2>
+            <p class="sub" id="summary">Signal glyph comparison</p>
           </div>
-          <div class="lineage" id="lineage"></div>
-          <div class="caption">The fingerprint shape changes by delegation depth, verification strength, scope, and risk posture.</div>
+          <div class="pills">
+            <span class="pill" id="pVersion"></span>
+            <span class="pill" id="pMode"></span>
+            <span class="pill" id="pVerification"></span>
+          </div>
         </div>
-        <div class="panel">
-          <h2>Signal board</h2>
-          <div class="bars" id="bars"></div>
-          <pre id="raw"></pre>
+
+        <div class="glyphs">
+          <div class="glyph">
+            <h3>Face</h3>
+            <p>Personality / confidence / risk mood</p>
+            <svg id="face" viewBox="0 0 260 220"></svg>
+          </div>
+          <div class="glyph">
+            <h3>Fingerprint</h3>
+            <p>Provenance / verification / uniqueness</p>
+            <svg id="fingerprint" viewBox="0 0 260 220"></svg>
+          </div>
+          <div class="glyph">
+            <h3>Palmline</h3>
+            <p>Authority / action path / delegation flow</p>
+            <svg id="palm" viewBox="0 0 260 220"></svg>
+          </div>
         </div>
+
+        <div class="metrics" id="cards"></div>
+        <div class="bars" id="bars"></div>
+        <pre id="raw"></pre>
       </div>
     </div>
   </div>
-  <script>
-    const title = document.getElementById('title');
-    const summary = document.getElementById('summary');
-    const cards = document.getElementById('cards');
-    const bars = document.getElementById('bars');
-    const raw = document.getElementById('raw');
-    const lineage = document.getElementById('lineage');
-    const pVersion = document.getElementById('pVersion');
-    const pMode = document.getElementById('pMode');
-    const pVerification = document.getElementById('pVerification');
-    const svg = document.getElementById('fingerprint');
 
-    function scoreVerification(v) {
-      return ({ self_asserted: 28, local_runtime_asserted: 54, platform_asserted: 76, cryptographically_signed: 96 }[v] || 40);
+  <script>
+    const el = (id) => document.getElementById(id);
+    const title = el('title'), summary = el('summary'), cards = el('cards'), bars = el('bars'), raw = el('raw');
+    const pVersion = el('pVersion'), pMode = el('pMode'), pVerification = el('pVerification');
+    const face = el('face'), fingerprint = el('fingerprint'), palm = el('palm');
+
+    const roleMap = {
+      ceo: 88, cto: 78, cmo: 68, researcher: 52, implementation_engineer: 66,
+      engineer: 64, operations_assistant: 58, review_engineer: 46
+    };
+    const verificationMap = { self_asserted: 28, local_runtime_asserted: 54, platform_asserted: 78, cryptographically_signed: 96 };
+
+    function personalityScore(data) {
+      return roleMap[data.agent.role] || roleMap[data.agent.title] || 55;
     }
-    function scoreDelegation(depth) { return Math.max(10, 90 - depth * 22); }
-    function scoreScope(scope) {
-      let n = 40;
-      if (scope.network === 'none') n += 18;
-      if (scope.network === 'restricted') n += 8;
-      if (scope.secrets === 'none') n += 18;
-      if (scope.write_access === false) n += 14;
+    function authorityScore(data) {
+      let n = 25;
+      if (data.scope.write_access) n += 20;
+      if ((data.scope.repos || []).length) n += 15;
+      if (data.agent.owner?.type === 'company') n += 10;
+      if (data.delegation.approved_by) n += 10;
       return Math.min(100, n);
     }
-    function scoreRisk(scope) {
-      let r = 30;
-      if (scope.write_access) r += 20;
-      if (scope.network === 'allowed') r += 30;
-      if (scope.network === 'restricted') r += 15;
-      if (scope.secrets === 'indirect') r += 15;
-      if (scope.secrets === 'direct') r += 30;
+    function riskScore(data) {
+      let r = 15;
+      if (data.scope.write_access) r += 25;
+      if (data.scope.network === 'restricted') r += 18;
+      if (data.scope.network === 'allowed') r += 35;
+      if (data.scope.secrets === 'indirect') r += 15;
+      if (data.scope.secrets === 'direct') r += 30;
+      if ((data.delegation.chain_depth || 0) > 1) r += 10;
       return Math.min(100, r);
     }
-
-    function renderBars(items) {
-      bars.innerHTML = items.map(({label, value, color}) => `
-        <div class="bar">
-          <label><span>${label}</span><span>${value}</span></label>
-          <div class="track"><div class="fill" style="width:${value}%; background:${color}"></div></div>
-        </div>
-      `).join('');
+    function provenanceScore(data) {
+      let p = verificationMap[data.verification.strength] || 40;
+      if (data.delegation.delegated_by?.agent_id) p += 6;
+      return Math.min(100, p);
+    }
+    function metricColor(v) {
+      if (v >= 80) return '#34d399';
+      if (v >= 55) return '#60a5fa';
+      if (v >= 35) return '#fbbf24';
+      return '#f87171';
     }
 
-    function drawFingerprint(data, metrics) {
+    function drawFace(m) {
+      const eyeTilt = (m.personality - 50) / 12;
+      const mouthCurve = (50 - m.risk) / 8;
+      const jaw = 72 + m.authority / 8;
+      const aura = metricColor(m.provenance);
+      face.innerHTML = `
+        <rect x="0" y="0" width="260" height="220" rx="18" fill="#081121" stroke="#24385e"/>
+        <circle cx="130" cy="110" r="74" fill="${aura}" fill-opacity="0.10" />
+        <path d="M 70 80 Q 130 20 ${190} 80 L ${170 + jaw/5} 165 Q 130 205 ${90 - jaw/5} 165 Z" fill="#132346" stroke="#5b7fc7" stroke-width="2"/>
+        <path d="M 92 95 Q 108 ${95-eyeTilt} 124 95" stroke="#eef2ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path d="M 136 95 Q 152 ${95+eyeTilt} 168 95" stroke="#eef2ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <circle cx="108" cy="110" r="5" fill="#60a5fa"/>
+        <circle cx="152" cy="110" r="5" fill="#60a5fa"/>
+        <path d="M 130 115 L 126 138 L 136 138" stroke="#9fb0d9" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 98 158 Q 130 ${158 + mouthCurve} 162 158" stroke="${metricColor(100-m.risk)}" stroke-width="4" fill="none" stroke-linecap="round"/>
+      `;
+    }
+
+    function drawFingerprint(m, data) {
       const depth = data.delegation.chain_depth || 0;
-      const rings = 7;
-      const cx = 130, cy = 160;
-      const color = data.verification.signed ? '#34d399' : (data.verification.strength === 'platform_asserted' ? '#60a5fa' : '#a78bfa');
-      let paths = '';
-      for (let i = 0; i < rings; i++) {
-        const ry = 110 - i * 12;
-        const rx = 78 - i * 8 + depth * 3;
-        const wobble = 6 + i * 1.5;
+      const stroke = metricColor(m.provenance);
+      let out = '<rect x="0" y="0" width="260" height="220" rx="18" fill="#081121" stroke="#24385e"/>';
+      for (let i = 0; i < 6; i++) {
+        const rx = 78 - i * 8 + depth * 4;
+        const ry = 60 - i * 6 + (m.authority - 50) / 12;
+        const wobble = 4 + i * 1.5 + (100 - m.provenance) / 30;
         let d = '';
-        for (let a = 0; a <= Math.PI * 2 + 0.01; a += 0.12) {
-          const w = Math.sin(a * (2 + depth) + i) * wobble;
-          const x = cx + Math.cos(a) * (rx + w);
-          const y = cy + Math.sin(a) * (ry + w * 0.65);
-          d += (a === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+        for (let a = 0; a <= Math.PI * 2 + 0.01; a += 0.11) {
+          const w = Math.sin(a * (2.2 + depth) + i) * wobble;
+          const x = 130 + Math.cos(a) * (rx + w);
+          const y = 116 + Math.sin(a) * (ry + w * 0.8);
+          d += (a === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
         }
-        paths += `<path d="${d}Z" fill="none" stroke="${color}" stroke-opacity="${0.24 + i*0.08}" stroke-width="${1.6 + i*0.12}" />`;
+        out += `<path d="${d}Z" fill="none" stroke="${stroke}" stroke-opacity="${0.25 + i*0.1}" stroke-width="${1.4 + i*0.15}"/>`;
       }
-      const core = `<circle cx="${cx}" cy="${cy}" r="26" fill="${color}" fill-opacity="0.18" stroke="${color}" stroke-width="2" />`;
-      const text = `<text x="${cx}" y="${cy+4}" fill="#eef2ff" font-size="11" text-anchor="middle">${data.agent.display_name}</text>`;
-      const badges = `
-        <text x="18" y="24" fill="#9fb0d9" font-size="12">Verification ${metrics.verification}</text>
-        <text x="18" y="42" fill="#9fb0d9" font-size="12">Scope ${metrics.scope}</text>
-        <text x="18" y="60" fill="#9fb0d9" font-size="12">Risk ${metrics.risk}</text>`;
-      svg.innerHTML = `<rect x="0" y="0" width="260" height="320" rx="24" fill="#091224" stroke="#24385e" />${paths}${core}${text}${badges}`;
+      out += `<circle cx="130" cy="116" r="18" fill="${stroke}" fill-opacity="0.12" stroke="${stroke}" stroke-width="2"/>`;
+      fingerprint.innerHTML = out;
+    }
+
+    function drawPalm(m, data) {
+      const risk = m.risk;
+      const auth = m.authority;
+      const prov = m.provenance;
+      const main = metricColor(auth);
+      const aux = metricColor(prov);
+      const riskColor = metricColor(100-risk);
+      const chain = data.delegation.chain_depth || 0;
+      palm.innerHTML = `
+        <rect x="0" y="0" width="260" height="220" rx="18" fill="#081121" stroke="#24385e"/>
+        <path d="M 54 175 Q 42 120 62 78 Q 78 44 110 46 Q 128 24 154 34 Q 176 28 196 46 Q 214 64 208 92 Q 220 118 212 144 Q 200 182 166 188 L 92 188 Q 64 188 54 175 Z" fill="#132346" stroke="#5b7fc7" stroke-width="2"/>
+        <path d="M 84 86 Q 128 ${78-chain*8} 180 98" stroke="${main}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 72 116 Q 126 ${112 + (risk/12)} 190 124" stroke="${aux}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 90 150 Q 126 ${140 - (auth/18)} 170 144" stroke="${riskColor}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path d="M 120 58 Q ${122 + chain*10} 92 ${118 + chain*8} 126" stroke="#eef2ff" stroke-opacity="0.65" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M 132 88 L ${156 + chain*7} 66" stroke="#eef2ff" stroke-opacity="0.4" stroke-width="2"/>
+        <path d="M 136 120 L ${164 + chain*5} 114" stroke="#eef2ff" stroke-opacity="0.4" stroke-width="2"/>
+      `;
+    }
+
+    function renderBars(metrics) {
+      const items = [
+        ['Personality', metrics.personality],
+        ['Authority', metrics.authority],
+        ['Risk', metrics.risk],
+        ['Provenance', metrics.provenance]
+      ];
+      bars.innerHTML = items.map(([label, value]) => `
+        <div class="bar">
+          <label><span>${label}</span><span>${value}</span></label>
+          <div class="track"><div class="fill" style="width:${value}%; background:${metricColor(label === 'Risk' ? 100-value : value)}"></div></div>
+        </div>
+      `).join('');
     }
 
     async function loadExample(file) {
       const res = await fetch(`../examples/${file}`);
       const data = await res.json();
       const metrics = {
-        verification: scoreVerification(data.verification.strength),
-        delegation: scoreDelegation(data.delegation.chain_depth || 0),
-        scope: scoreScope(data.scope),
-        risk: scoreRisk(data.scope)
+        personality: personalityScore(data),
+        authority: authorityScore(data),
+        risk: riskScore(data),
+        provenance: provenanceScore(data)
       };
-      title.textContent = `${data.agent.display_name} fingerprint`;
-      summary.textContent = `${data.agent.role} · ${data.delegation.mode} · ${data.verification.strength}`;
+      title.textContent = `${data.agent.display_name} · signal glyph set`;
+      summary.textContent = `${data.agent.role} / ${data.delegation.mode} / ${data.verification.strength}`;
       pVersion.textContent = data.version;
       pMode.textContent = data.delegation.mode;
       pVerification.textContent = data.verification.strength;
       cards.innerHTML = [
-        ['Owner', `${data.agent.owner.type}:${data.agent.owner.id}`],
-        ['Provider', data.agent.provider],
-        ['Task', data.delegation.task_ref || '-'],
-        ['Surface', data.runtime.surface || '-'],
-        ['Workspace', (data.scope.workspace || [])[0] || '-'],
-        ['Repos', (data.scope.repos || []).join(', ') || '-']
+        ['Agent', data.agent.id], ['Owner', `${data.agent.owner.type}:${data.agent.owner.id}`],
+        ['Task', data.delegation.task_ref || '-'], ['Workspace', (data.scope.workspace || [])[0] || '-']
       ].map(([k,v]) => `<div class="mini"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('');
-      lineage.innerHTML = '';
-      const nodes = [];
-      if (data.delegation.delegated_by?.agent_id) nodes.push(data.delegation.delegated_by.agent_id);
-      nodes.push(data.agent.id);
-      lineage.innerHTML = nodes.map((n, i) => `${i ? '<span class="arrow">→</span>' : ''}<span class="node">${n}</span>`).join('');
-      renderBars([
-        { label: 'Verification strength', value: metrics.verification, color: '#60a5fa' },
-        { label: 'Delegation clarity', value: metrics.delegation, color: '#a78bfa' },
-        { label: 'Scope tightness', value: metrics.scope, color: '#34d399' },
-        { label: 'Operational risk', value: metrics.risk, color: '#fbbf24' }
-      ]);
-      drawFingerprint(data, metrics);
-      raw.textContent = JSON.stringify(data, null, 2);
+      drawFace(metrics);
+      drawFingerprint(metrics, data);
+      drawPalm(metrics, data);
+      renderBars(metrics);
+      raw.textContent = JSON.stringify({ metrics, agent: data.agent, delegation: data.delegation, verification: data.verification }, null, 2);
     }
 
     document.querySelectorAll('button[data-file]').forEach(btn => btn.addEventListener('click', () => loadExample(btn.dataset.file)));
