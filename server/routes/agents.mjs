@@ -8,6 +8,7 @@ import {
   issueCredentialJWT,
 } from "../lib/crypto.mjs";
 import { generateIdCardSvg, generateNftMetadata } from "../lib/image-generator.mjs";
+import { mintAgent, revokeAgent, isChainEnabled } from "../lib/chain.mjs";
 
 export async function agentsRoutes(fastify, options) {
   const { masterKey } = options;
@@ -143,7 +144,7 @@ export async function agentsRoutes(fastify, options) {
       };
       const nft_image_svg = generateIdCardSvg(agentDataForImage);
 
-      // 6. Persist agent record
+      // 6. Persist agent record (without chain data yet)
       db.prepare(
         `INSERT INTO agents
            (ail_id, display_name, role, provider, model,
@@ -171,6 +172,21 @@ export async function agentsRoutes(fastify, options) {
 
       fastify.log.info(`Registered agent ${ail_id} (${display_name}) for owner ${owner_key_id}`);
 
+      // 7. Mint NFT on-chain (non-blocking — failure does not abort registration)
+      let nft = { token_id: null, tx_hash: null };
+      if (isChainEnabled()) {
+        const baseUrl = process.env.AIL_BASE_URL ?? "";
+        const metadataUri = `${baseUrl}/agents/${ail_id}/metadata`;
+        const chainResult = await mintAgent(ail_id, null, metadataUri);
+        if (chainResult) {
+          nft = { token_id: chainResult.tokenId, tx_hash: chainResult.txHash };
+          db.prepare(
+            "UPDATE agents SET nft_token_id = ?, nft_tx_hash = ? WHERE ail_id = ?"
+          ).run(chainResult.tokenId, chainResult.txHash, ail_id);
+          fastify.log.info(`Minted NFT tokenId=${chainResult.tokenId} txHash=${chainResult.txHash} for ${ail_id}`);
+        }
+      }
+
       return reply.code(201).send({
         ail_id,
         credential: {
@@ -185,6 +201,7 @@ export async function agentsRoutes(fastify, options) {
         behavior_fingerprint,
         nft_image_url: `/agents/${ail_id}/image`,
         nft_metadata_url: `/agents/${ail_id}/metadata`,
+        ...(nft.token_id && { nft: { token_id: nft.token_id, tx_hash: nft.tx_hash } }),
       });
     }
   );
@@ -260,6 +277,17 @@ export async function agentsRoutes(fastify, options) {
       ).run(new Date().toISOString(), ail_id);
 
       fastify.log.info(`Revoked agent ${ail_id}`);
+
+      // Burn NFT on-chain if it was minted
+      if (isChainEnabled()) {
+        const row = db.prepare("SELECT nft_token_id FROM agents WHERE ail_id = ?").get(ail_id);
+        if (row?.nft_token_id) {
+          const chainResult = await revokeAgent(row.nft_token_id);
+          if (chainResult) {
+            fastify.log.info(`Burned NFT tokenId=${row.nft_token_id} txHash=${chainResult.txHash} for ${ail_id}`);
+          }
+        }
+      }
 
       return reply.send({ revoked: true, ail_id });
     }

@@ -7,16 +7,25 @@ primary_region = "nrt"   # Tokyo — change to your preferred region
 [build]
 
 [env]
-  PORT     = "8080"
-  HOST     = "0.0.0.0"
-  NODE_ENV = "production"
-
-# Database path points to the persistent volume
-[env]
+  PORT        = "8080"
+  HOST        = "0.0.0.0"
+  NODE_ENV    = "production"
   AIL_DB_PATH = "/data/ail.db"
+  AIL_BASE_URL = "https://22blabs-ail.fly.dev"
+
+# Secrets (set via: fly secrets set KEY=value)
+# Required:
+#   AIL_MASTER_KEY_JSON   — JSON content of data/master-key.json (or use volume)
+#   ADMIN_API_KEY         — Admin API key for dashboard
+# Optional (on-chain NFT):
+#   CHAIN_RPC_URL         — Alchemy RPC URL
+#   CHAIN_PRIVATE_KEY     — Minter wallet private key
+#   NFT_CONTRACT_ADDRESS  — Deployed AILIdentity contract address
+# Optional (email):
+#   SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / EMAIL_FROM
 
 [[services]]
-  protocol    = "tcp"
+  protocol      = "tcp"
   internal_port = 8080
 
   [[services.ports]]
@@ -33,16 +42,16 @@ primary_region = "nrt"   # Tokyo — change to your preferred region
     soft_limit = 150
 
   [[services.tcp_checks]]
-    interval    = "15s"
-    timeout     = "5s"
+    interval     = "15s"
+    timeout      = "5s"
     grace_period = "10s"
 
   [[services.http_checks]]
-    interval    = "30s"
-    timeout     = "5s"
+    interval     = "30s"
+    timeout      = "5s"
     grace_period = "10s"
-    method      = "GET"
-    path        = "/health"
+    method       = "GET"
+    path         = "/health"
 
 # Persistent volume for SQLite database
 [[mounts]]

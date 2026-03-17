@@ -17,7 +17,9 @@
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",
+    "ethers": "^6.16.0",
     "fastify": "^4.26.2",
-    "jose": "^5.2.3"
+    "jose": "^5.2.3",
+    "nodemailer": "^8.0.2"
   }
 }

@@ -69,10 +69,13 @@ function initSchema(db) {
     );
   `);
 
-  // Migration: add nft_image_svg column to existing databases
-  try {
-    db.exec("ALTER TABLE agents ADD COLUMN nft_image_svg TEXT");
-  } catch {
-    // Column already exists — safe to ignore
+  // Migrations for existing databases
+  const migrations = [
+    "ALTER TABLE agents ADD COLUMN nft_image_svg  TEXT",
+    "ALTER TABLE agents ADD COLUMN nft_token_id   TEXT",
+    "ALTER TABLE agents ADD COLUMN nft_tx_hash    TEXT",
+  ];
+  for (const sql of migrations) {
+    try { db.exec(sql); } catch { /* column already exists */ }
   }
 }

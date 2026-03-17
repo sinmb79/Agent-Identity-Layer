@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { getDb } from "../lib/db.mjs";
 import { generateOwnerKeypair, generateOtp } from "../lib/crypto.mjs";
+import { sendOwnerOtp } from "../lib/email.mjs";
 
 export async function ownersRoutes(fastify) {
   /**
@@ -51,8 +52,8 @@ export async function ownersRoutes(fastify) {
         "INSERT INTO owner_otps (id, owner_id, otp, expires_at) VALUES (?, ?, ?, ?)"
       ).run(otpId, owner_key_id, otp, expiresAt);
 
-      // Email sending is stubbed — OTP logged to server console
-      fastify.log.info(`[EMAIL STUB] To: ${email} | OTP: ${otp} | Expires: ${expiresAt}`);
+      // Send OTP email (falls back to console.log if SMTP not configured)
+      await sendOwnerOtp(email, otp, expiresAt);
 
       return reply.code(201).send({
         owner_key_id,
