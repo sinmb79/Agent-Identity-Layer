@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html class="dark" lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="AI 에이전트를 위한 공식 신분증. 22B Labs가 서명한 신원 크리덴셜과 NFT ID 카드를 즉시 발급합니다."/>
+<title>22B Labs · Agent Identity Layer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          primary: "#4f8ef7",
+          "bg-dark": "#0d0f14",
+          surface: "#161b25",
+          border: "#1e2535",
+        },
+        fontFamily: {
+          display: ["Inter", "sans-serif"],
+          mono: ["JetBrains Mono", "monospace"],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root { scroll-behavior: smooth; }
+
+  .glass {
+    background: rgba(13, 15, 20, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .card-gradient {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid rgba(79,142,247,0.3);
+  }
+
+  .holo-border {
+    border: 1.5px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+  .holo-border::before {
+    content: "";
+    position: absolute;
+    inset: -1.5px;
+    border-radius: inherit;
+    background: linear-gradient(135deg,#4f8ef7,#a78bfa,#34d399,#fbbf24,#4f8ef7);
+    z-index: -1;
+  }
+
+  .code-block {
+    background: #0d1117;
+    border: 1px solid #30363d;
+  }
+
+  .float-card {
+    animation: floatY 4s ease-in-out infinite;
+  }
+  @keyframes floatY {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50%      { transform: translateY(-10px) rotate(-1deg); }
+  }
+  .float-card:hover {
+    animation: none;
+    transform: rotate(0deg) scale(1.02);
+    transition: transform 0.4s ease;
+  }
+
+  /* Scroll-reveal */
+  .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.6s ease, transform 0.6s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* FAQ accordion */
+  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease; }
+  .faq-answer.open { max-height: 200px; }
+  .faq-icon { transition: transform 0.3s ease; }
+  .faq-item.open .faq-icon { transform: rotate(180deg); }
+
+  /* SDK tab */
+  .sdk-tab.active { border-bottom-color: #4f8ef7; color: #e2e8f0; background: rgba(79,142,247,0.08); }
+
+  /* Chain badge */
+  .chain-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 9999px;
+    font-size: 11px; font-weight: 600; font-family: "JetBrains Mono", monospace;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* Glyph animation */
+  @keyframes glyphPulse {
+    0%,100% { opacity: 0.7; }
+    50%      { opacity: 1; }
+  }
+  .glyph-svg { animation: glyphPulse 3s ease-in-out infinite; }
+  .glyph-svg:hover { animation: none; opacity: 1; }
+
+  /* No scrollbar */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Gradient text */
+  .grad-text {
+    background: linear-gradient(135deg, #4f8ef7, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+</style>
+</head>
+<body class="bg-bg-dark text-slate-100 font-display antialiased">
+
+<!-- ══ NAVBAR ══════════════════════════════════════════════════════════════ -->
+<nav class="fixed top-0 w-full z-50 glass">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+    <!-- Logo -->
+    <a href="#" class="flex items-center gap-2 shrink-0">
+      <span class="material-symbols-outlined text-primary text-2xl">fingerprint</span>
+      <span class="font-bold text-base tracking-tight">22B Labs <span class="text-primary/70 font-medium">· AIL</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="hidden md:flex items-center gap-6 text-sm text-slate-400">
+      <a href="#solution" class="hover:text-white transition-colors">Docs</a>
+      <a href="#pricing"  class="hover:text-white transition-colors">Pricing</a>
+      <a href="#verify"   class="hover:text-white transition-colors">Verify</a>
+      <a href="#"         class="hover:text-white transition-colors">Dashboard</a>
+    </div>
+
+    <!-- CTA -->
+    <div class="flex items-center gap-3">
+      <button onclick="toggleLang()" id="lang-btn"
+              class="hidden md:block text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors border border-slate-700 px-2 py-1 rounded">
+        EN
+      </button>
+      <a href="#" class="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20">
+        Get Started
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HERO ════════════════════════════════════════════════════════════════ -->
+<section class="pt-28 pb-20 px-4 sm:px-6 overflow-hidden">
+  <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
+    <!-- Left: copy -->
+    <div class="reveal">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold mb-6">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+        </span>
+        <span data-ko="v1.0 · Base Sepolia 배포 완료" data-en="v1.0 · Base Sepolia deployed">v1.0 · Base Sepolia 배포 완료</span>
+      </div>
+
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
+        <span data-ko="AI 에이전트를 위한" data-en="The Official ID Card">AI 에이전트를 위한</span><br/>
+        <span class="grad-text" data-ko="공식 신분증" data-en="for AI Agents">공식 신분증</span>
+      </h1>
+
+      <p class="text-slate-400 text-lg max-w-xl mb-10 leading-relaxed"
+         data-ko="에이전트가 누구인지, 누가 소유하는지, 무엇을 할 수 있는지. 22B Labs가 서명한 신원 크리덴셜과 NFT ID 카드를 즉시 발급합니다."
+         data-en="Who built it, who owns it, what it can do — one signed credential. 22B Labs issues JWT credentials and NFT ID cards for AI agents instantly.">
+        에이전트가 누구인지, 누가 소유하는지, 무엇을 할 수 있는지. 22B Labs가 서명한 신원 크리덴셜과 NFT ID 카드를 즉시 발급합니다.
+      </p>
+
+      <div class="flex flex-wrap gap-3">
+        <a href="#" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-primary/25 flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">add_circle</span>
+          <span data-ko="에이전트 등록하기" data-en="Register Agent">에이전트 등록하기</span>
+        </a>
+        <a href="#solution" class="border border-slate-700 hover:border-primary/50 hover:bg-surface text-slate-300 px-6 py-3 rounded-xl text-sm font-semibold transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-base">menu_book</span>
+          <span data-ko="문서 보기" data-en="View Docs">문서 보기</span>
+        </a>
+      </div>
+
+      <!-- Chain badges -->
+      <div class="flex flex-wrap gap-2 mt-8">
+        <span class="chain-badge"><span style="color:#2D5BE3">⬡</span> Base</span>
+        <span class="chain-badge"><span style="color:#627EEA">⬡</span> Ethereum</span>
+        <span class="chain-badge"><span style="color:#F3BA2F">⬡</span> BNB</span>
+        <span class="chain-badge"><span style="color:#8247E5">⬡</span> Polygon</span>
+        <span class="chain-badge"><span style="color:#00CFAA">⬡</span> World Chain</span>
+      </div>
+    </div>
+
+    <!-- Right: ID Card mockup -->
+    <div class="flex justify-center lg:justify-end reveal">
+      <div class="float-card w-full max-w-sm holo-border rounded-2xl overflow-hidden shadow-2xl shadow-primary/20 cursor-pointer"
+           style="background:linear-gradient(135deg,#0d1526 0%,#0a1020 100%);">
+        <!-- Card header -->
+        <div class="px-6 pt-5 pb-4 border-b border-white/5 flex justify-between items-center">
+          <div>
+            <p class="text-[9px] uppercase tracking-[3px] text-slate-500 font-mono">22B LABS</p>
+            <p class="text-xs font-bold tracking-widest text-slate-300 mt-0.5">AGENT IDENTITY LAYER</p>
+          </div>
+          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-950 border border-green-800">
+            <span class="text-green-400 text-[10px] font-bold">◈ VERIFIED</span>
+          </div>
+        </div>
+
+        <!-- Card body -->
+        <div class="px-6 py-5 flex gap-5">
+          <!-- Signal glyph -->
+          <div class="shrink-0">
+            <svg width="72" height="72" viewBox="0 0 72 72" class="glyph-svg">
+              <!-- Face glyph simplified -->
+              <circle cx="36" cy="36" r="34" fill="#0a1a30" stroke="#4f8ef7" stroke-width="1.5"/>
+              <circle cx="36" cy="36" r="28" fill="none" stroke="#4f8ef7" stroke-opacity="0.2" stroke-width="1"/>
+              <!-- eyes -->
+              <ellipse cx="27" cy="31" rx="5" ry="4" fill="#0a1a30" stroke="#7fa8d8" stroke-width="1"/>
+              <ellipse cx="45" cy="31" rx="5" ry="4" fill="#0a1a30" stroke="#7fa8d8" stroke-width="1"/>
+              <circle cx="27" cy="31" r="2.5" fill="#60a5fa"/>
+              <circle cx="45" cy="31" r="2.5" fill="#60a5fa"/>
+              <!-- nose -->
+              <path d="M36 35 L34 40 Q36 42 38 40 Z" fill="none" stroke="#9fb0d9" stroke-width="1" opacity="0.6"/>
+              <!-- mouth -->
+              <path d="M30 46 Q36 50 42 46" stroke="#34d399" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <!-- brows -->
+              <path d="M23 26 Q27 24 31 26" stroke="#9fb0d9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+              <path d="M41 26 Q45 24 49 26" stroke="#9fb0d9" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <p class="font-mono text-primary text-sm font-bold tracking-wide">AIL-2026-00001</p>
+            <p class="text-xl font-black text-white mt-1">ClaudeCoder</p>
+            <p class="text-[11px] text-slate-500 font-mono mt-0.5">review_engineer</p>
+            <div class="grid grid-cols-2 gap-x-3 gap-y-2 mt-3">
+              <div>
+                <p class="text-[9px] uppercase tracking-widest text-slate-600 font-mono">PROVIDER</p>
+                <p class="font-mono text-[11px] text-slate-300">anthropic</p>
+              </div>
+              <div>
+                <p class="text-[9px] uppercase tracking-widest text-slate-600 font-mono">OWNER</p>
+                <p class="font-mono text-[11px] text-slate-300">22b_labs</p>
+              </div>
+              <div>
+                <p class="text-[9px] uppercase tracking-widest text-slate-600 font-mono">ISSUED</p>
+                <p class="font-mono text-[11px] text-slate-300">2026-03-17</p>
+              </div>
+              <div>
+                <p class="text-[9px] uppercase tracking-widest text-slate-600 font-mono">VALID UNTIL</p>
+                <p class="font-mono text-[11px] text-slate-300">2027-03-17</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fingerprint row -->
+        <div class="border-t border-white/5 px-6 py-3 flex items-center gap-4 bg-black/20">
+          <!-- mini fingerprint SVG -->
+          <svg width="48" height="36" viewBox="0 0 48 36" opacity="0.7">
+            <ellipse cx="24" cy="18" rx="20" ry="14" fill="none" stroke="#4f8ef7" stroke-width="0.8" stroke-opacity="0.3"/>
+            <ellipse cx="24" cy="18" rx="15" ry="10" fill="none" stroke="#4f8ef7" stroke-width="0.8" stroke-opacity="0.5"/>
+            <ellipse cx="24" cy="18" rx="10" ry="6"  fill="none" stroke="#4f8ef7" stroke-width="0.8" stroke-opacity="0.7"/>
+            <ellipse cx="24" cy="18" rx="5"  ry="3"  fill="none" stroke="#4f8ef7" stroke-width="0.8"/>
+            <circle  cx="24" cy="18" r="1.5" fill="#4f8ef7"/>
+          </svg>
+          <!-- barcode -->
+          <div class="flex gap-px items-center h-6 flex-1">
+            <div class="w-0.5 h-full bg-primary/60"></div><div class="w-px h-4 bg-primary/40"></div>
+            <div class="w-1 h-full bg-primary/70"></div><div class="w-px h-5 bg-primary/30"></div>
+            <div class="w-0.5 h-full bg-primary/60"></div><div class="w-1.5 h-4 bg-primary/50"></div>
+            <div class="w-px h-full bg-primary/70"></div><div class="w-0.5 h-5 bg-primary/40"></div>
+            <div class="w-1 h-full bg-primary/60"></div><div class="w-px h-4 bg-primary/30"></div>
+            <div class="w-0.5 h-full bg-primary/70"></div><div class="w-1 h-5 bg-primary/50"></div>
+            <div class="w-px h-full bg-primary/60"></div><div class="w-0.5 h-4 bg-primary/40"></div>
+            <div class="w-1 h-full bg-primary/70"></div><div class="w-px h-5 bg-primary/30"></div>
+            <div class="w-0.5 h-full bg-primary/60"></div><div class="w-1.5 h-4 bg-primary/50"></div>
+          </div>
+          <p class="text-[9px] font-mono text-slate-600">SHA·SIGNED</p>
+        </div>
+
+        <!-- Card footer -->
+        <div class="border-t border-white/5 px-6 py-2.5 flex justify-between items-center bg-black/30">
+          <p class="text-[9px] font-mono text-slate-700 tracking-widest">22B LABS · AGENT IDENTITY LAYER</p>
+          <p class="text-[9px] font-mono text-slate-700">22blabs.ai</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PROBLEM ═════════════════════════════════════════════════════════════ -->
+<section class="py-20 px-4 sm:px-6 bg-surface/30">
+  <div class="max-w-7xl mx-auto">
+    <h2 class="text-3xl font-bold mb-12 text-center reveal"
+        data-ko="이런 문제, 없지 않나요?" data-en="Sound familiar?">이런 문제, 없지 않나요?</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="p-8 rounded-2xl bg-bg-dark border border-slate-800 hover:border-primary/40 transition-colors group reveal">
+        <span class="material-symbols-outlined text-red-400 text-4xl mb-4 block group-hover:scale-110 transition-transform">gpp_bad</span>
+        <h3 class="text-xl font-bold mb-2" data-ko="이 에이전트, 믿어도 되나?" data-en="Can I trust this agent?">이 에이전트, 믿어도 되나?</h3>
+        <p class="text-slate-400 text-sm leading-relaxed"
+           data-ko="누가 만든 에이전트인지 알 수 없습니다. 악의적 에이전트가 신뢰받은 에이전트를 사칭할 수 있습니다."
+           data-en="You can't tell who built it. A malicious agent can impersonate a trusted one with no way to verify.">
+          누가 만든 에이전트인지 알 수 없습니다. 악의적 에이전트가 신뢰받은 에이전트를 사칭할 수 있습니다.
+        </p>
+      </div>
+      <div class="p-8 rounded-2xl bg-bg-dark border border-slate-800 hover:border-primary/40 transition-colors group reveal">
+        <span class="material-symbols-outlined text-yellow-400 text-4xl mb-4 block group-hover:scale-110 transition-transform">gavel</span>
+        <h3 class="text-xl font-bold mb-2" data-ko="책임은 누구에게?" data-en="Who's accountable?">책임은 누구에게?</h3>
+        <p class="text-slate-400 text-sm leading-relaxed"
+           data-ko="에이전트가 문제를 일으켜도 소유자를 특정할 방법이 없습니다."
+           data-en="When an agent causes harm, there's no verifiable ownership chain to identify who's responsible.">
+          에이전트가 문제를 일으켜도 소유자를 특정할 방법이 없습니다.
+        </p>
+      </div>
+      <div class="p-8 rounded-2xl bg-bg-dark border border-slate-800 hover:border-primary/40 transition-colors group reveal">
+        <span class="material-symbols-outlined text-blue-400 text-4xl mb-4 block group-hover:scale-110 transition-transform">hub</span>
+        <h3 class="text-xl font-bold mb-2" data-ko="다른 시스템과 연동 불가" data-en="No cross-platform trust">다른 시스템과 연동 불가</h3>
+        <p class="text-slate-400 text-sm leading-relaxed"
+           data-ko="에이전트 신원 표준이 없어 플랫폼 간 신뢰 공유가 불가능합니다."
+           data-en="Without an identity standard, you can't share agent trust across different platforms.">
+          에이전트 신원 표준이 없어 플랫폼 간 신뢰 공유가 불가능합니다.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SOLUTION ════════════════════════════════════════════════════════════ -->
+<section id="solution" class="py-24 px-4 sm:px-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <h2 class="text-3xl font-bold mb-4"
+          data-ko="3단계면 충분합니다" data-en="Three steps. Done.">3단계면 충분합니다</h2>
+      <p class="text-slate-400"
+         data-ko="API 호출 몇 번으로 에이전트 신원을 즉시 생성하세요."
+         data-en="A few API calls. Your agent gets an identity in seconds.">
+        API 호출 몇 번으로 에이전트 신원을 즉시 생성하세요.
+      </p>
+    </div>
+
+    <div class="space-y-20">
+      <!-- Step 1 -->
+      <div class="flex flex-col md:flex-row gap-8 items-start reveal">
+        <div class="flex-1">
+          <p class="text-primary font-mono text-xs mb-2 tracking-widest">STEP 01</p>
+          <h3 class="text-2xl font-bold mb-3" data-ko="오너 등록" data-en="Register Owner">오너 등록</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4"
+             data-ko="이메일과 조직명으로 등록하면 EC P-256 키 페어가 발급됩니다. 이 키로 에이전트 등록에 서명합니다."
+             data-en="Register with email and org name to receive an EC P-256 keypair. Use this key to sign agent registrations.">
+            이메일과 조직명으로 등록하면 EC P-256 키 페어가 발급됩니다. 이 키로 에이전트 등록에 서명합니다.
+          </p>
+        </div>
+        <div class="flex-1 w-full code-block rounded-xl overflow-hidden shadow-2xl font-mono text-sm">
+          <div class="flex items-center gap-1.5 px-4 py-3 border-b border-slate-800 bg-slate-900/50">
+            <div class="w-3 h-3 rounded-full bg-red-500/60"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+            <span class="ml-3 text-slate-600 text-xs">terminal</span>
+          </div>
+          <div class="p-5 overflow-x-auto">
+<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-300">/owners/register</span>
+<span class="text-slate-600">{</span>
+  <span class="text-blue-300">"email"</span><span class="text-slate-500">:</span> <span class="text-green-400">"you@company.com"</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"org"</span><span class="text-slate-500">:</span>   <span class="text-green-400">"your_org"</span>
+<span class="text-slate-600">}</span>
+
+<span class="text-slate-600">// Response</span>
+<span class="text-slate-600">{</span>
+  <span class="text-blue-300">"owner_key_id"</span><span class="text-slate-500">:</span> <span class="text-green-400">"owk_c8fb..."</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"private_key_jwk"</span><span class="text-slate-500">:</span> <span class="text-slate-400">{ ... }</span>
+<span class="text-slate-600">}</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flex flex-col md:flex-row-reverse gap-8 items-start reveal">
+        <div class="flex-1">
+          <p class="text-primary font-mono text-xs mb-2 tracking-widest">STEP 02</p>
+          <h3 class="text-2xl font-bold mb-3" data-ko="에이전트 등록" data-en="Register Agent">에이전트 등록</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4"
+             data-ko="에이전트 정보(이름, 역할, 범위)를 오너 키로 서명해 제출합니다. 이중 서명 구조가 신뢰 체인을 보장합니다."
+             data-en="Sign the agent payload (name, role, scope) with your owner key. Dual-signature structure ensures the chain of trust.">
+            에이전트 정보(이름, 역할, 범위)를 오너 키로 서명해 제출합니다. 이중 서명 구조가 신뢰 체인을 보장합니다.
+          </p>
+        </div>
+        <div class="flex-1 w-full code-block rounded-xl overflow-hidden shadow-2xl font-mono text-sm">
+          <div class="flex items-center gap-1.5 px-4 py-3 border-b border-slate-800 bg-slate-900/50">
+            <div class="w-3 h-3 rounded-full bg-red-500/60"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+            <span class="ml-3 text-slate-600 text-xs">terminal</span>
+          </div>
+          <div class="p-5 overflow-x-auto">
+<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-300">/agents/register</span>
+<span class="text-slate-600">{</span>
+  <span class="text-blue-300">"owner_key_id"</span><span class="text-slate-500">:</span> <span class="text-green-400">"owk_c8fb..."</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"payload"</span><span class="text-slate-500">:</span> <span class="text-slate-600">{</span>
+    <span class="text-blue-300">"display_name"</span><span class="text-slate-500">:</span> <span class="text-green-400">"ClaudeCoder"</span><span class="text-slate-600">,</span>
+    <span class="text-blue-300">"role"</span><span class="text-slate-500">:</span>         <span class="text-green-400">"review_engineer"</span><span class="text-slate-600">,</span>
+    <span class="text-blue-300">"scope"</span><span class="text-slate-500">:</span>        <span class="text-slate-400">{ ... }</span>
+  <span class="text-slate-600">},</span>
+  <span class="text-blue-300">"owner_signature"</span><span class="text-slate-500">:</span> <span class="text-green-400">"kSDs4..."</span>
+<span class="text-slate-600">}</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="flex flex-col md:flex-row gap-8 items-start reveal">
+        <div class="flex-1">
+          <p class="text-primary font-mono text-xs mb-2 tracking-widest">STEP 03</p>
+          <h3 class="text-2xl font-bold mb-3" data-ko="신분증 발급" data-en="Credential Issued">신분증 발급</h3>
+          <p class="text-slate-400 text-sm leading-relaxed mb-4"
+             data-ko="AIL ID, JWT 크리덴셜, signal glyph, NFT 이미지 URL이 즉시 반환됩니다."
+             data-en="AIL ID, signed JWT credential, signal glyph, and NFT image URL are returned instantly.">
+            AIL ID, JWT 크리덴셜, signal glyph, NFT 이미지 URL이 즉시 반환됩니다.
+          </p>
+        </div>
+        <div class="flex-1 w-full code-block rounded-xl overflow-hidden shadow-2xl font-mono text-sm">
+          <div class="flex items-center gap-1.5 px-4 py-3 border-b border-slate-800 bg-slate-900/50">
+            <div class="w-3 h-3 rounded-full bg-red-500/60"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+            <div class="w-3 h-3 rounded-full bg-green-500/60"></div>
+            <span class="ml-3 text-green-500 text-xs">201 Created</span>
+          </div>
+          <div class="p-5 overflow-x-auto">
+<pre class="text-sm"><span class="text-slate-600">{</span>
+  <span class="text-blue-300">"ail_id"</span><span class="text-slate-500">:</span>          <span class="text-green-400">"AIL-2026-00001"</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"credential"</span><span class="text-slate-500">:</span>     <span class="text-slate-600">{</span>
+    <span class="text-blue-300">"token"</span><span class="text-slate-500">:</span>       <span class="text-green-400">"eyJhbGci..."</span><span class="text-slate-600">,</span>
+    <span class="text-blue-300">"expires_at"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"2027-03-17"</span>
+  <span class="text-slate-600">},</span>
+  <span class="text-blue-300">"nft_image_url"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"/agents/AIL-2026-00001/image"</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"signal_glyph"</span><span class="text-slate-500">:</span>   <span class="text-slate-400">{ "seed": "AIL-2026-00001:..." }</span>
+<span class="text-slate-600">}</span></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ NFT CARD SECTION ════════════════════════════════════════════════════ -->
+<section class="py-24 px-4 sm:px-6 bg-surface/30 overflow-hidden">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <h2 class="text-4xl font-black mb-4"
+          data-ko="신분증은 당신의 지갑에" data-en="Your Agent's ID Lives On-Chain">신분증은 당신의 지갑에</h2>
+      <p class="text-slate-400 max-w-xl mx-auto"
+         data-ko="에이전트가 등록되면 고유한 signal glyph가 생성되고, Base 네트워크에 NFT로 발행됩니다."
+         data-en="When an agent is registered, a unique signal glyph is generated and minted as an NFT on your chosen chain.">
+        에이전트가 등록되면 고유한 signal glyph가 생성되고, Base 네트워크에 NFT로 발행됩니다.
+      </p>
+    </div>
+
+    <!-- Card gallery with inline SVG glyphs -->
+    <div class="flex flex-nowrap gap-5 overflow-x-auto pb-8 no-scrollbar reveal">
+
+      <!-- Card A — whorl fingerprint -->
+      <div class="min-w-[260px] card-gradient rounded-xl p-5 relative overflow-hidden group cursor-pointer hover:border-primary/60 transition-colors">
+        <div class="flex justify-between items-start mb-4">
+          <p class="font-mono text-[11px] text-primary">AIL-2026-00001</p>
+          <span class="text-[10px] font-bold text-green-400 bg-green-950 border border-green-800 px-2 py-0.5 rounded">ACTIVE</span>
+        </div>
+        <svg width="80" height="80" viewBox="0 0 80 80" class="mb-3 glyph-svg">
+          <ellipse cx="40" cy="40" rx="36" ry="28" fill="none" stroke="#60a5fa" stroke-opacity="0.2" stroke-width="1"/>
+          <ellipse cx="40" cy="40" rx="28" ry="21" fill="none" stroke="#60a5fa" stroke-opacity="0.35" stroke-width="1"/>
+          <ellipse cx="40" cy="40" rx="20" ry="14" fill="none" stroke="#60a5fa" stroke-opacity="0.55" stroke-width="1"/>
+          <ellipse cx="40" cy="40" rx="12" ry="8"  fill="none" stroke="#60a5fa" stroke-opacity="0.75" stroke-width="1.2"/>
+          <ellipse cx="40" cy="40" rx="5"  ry="3"  fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+          <circle  cx="40" cy="40" r="2" fill="#60a5fa"/>
+        </svg>
+        <p class="text-base font-bold">ClaudeCoder</p>
+        <p class="text-[10px] font-mono text-slate-500 mt-0.5">review_engineer · anthropic</p>
+        <p class="text-[10px] font-mono text-slate-600 mt-3">Owner: 22b_labs</p>
+      </div>
+
+      <!-- Card B — loop fingerprint -->
+      <div class="min-w-[260px] card-gradient rounded-xl p-5 relative overflow-hidden group cursor-pointer hover:border-primary/60 transition-colors border-primary/40">
+        <div class="flex justify-between items-start mb-4">
+          <p class="font-mono text-[11px] text-primary">AIL-2026-00104</p>
+          <span class="text-[10px] font-bold text-green-400 bg-green-950 border border-green-800 px-2 py-0.5 rounded">ACTIVE</span>
+        </div>
+        <svg width="80" height="80" viewBox="0 0 80 80" class="mb-3 glyph-svg">
+          <path d="M20 65 C 5 40, 5 10, 40 8 C 75 10, 75 40, 60 65" fill="none" stroke="#34d399" stroke-opacity="0.3" stroke-width="1"/>
+          <path d="M25 65 C 12 42, 12 15, 40 13 C 68 15, 68 42, 55 65" fill="none" stroke="#34d399" stroke-opacity="0.45" stroke-width="1"/>
+          <path d="M30 65 C 19 44, 19 20, 40 18 C 61 20, 61 44, 50 65" fill="none" stroke="#34d399" stroke-opacity="0.6" stroke-width="1"/>
+          <path d="M35 65 C 26 46, 26 25, 40 23 C 54 25, 54 46, 45 65" fill="none" stroke="#34d399" stroke-opacity="0.8" stroke-width="1.2"/>
+          <circle cx="40" cy="40" r="2.5" fill="#34d399"/>
+        </svg>
+        <p class="text-base font-bold">ResearchBot</p>
+        <p class="text-[10px] font-mono text-slate-500 mt-0.5">researcher · openai</p>
+        <p class="text-[10px] font-mono text-slate-600 mt-3">Owner: dev_ryan</p>
+      </div>
+
+      <!-- Card C — arch fingerprint -->
+      <div class="min-w-[260px] card-gradient rounded-xl p-5 relative overflow-hidden group cursor-pointer hover:border-primary/60 transition-colors">
+        <div class="flex justify-between items-start mb-4">
+          <p class="font-mono text-[11px] text-primary">AIL-2026-00921</p>
+          <span class="text-[10px] font-bold text-green-400 bg-green-950 border border-green-800 px-2 py-0.5 rounded">ACTIVE</span>
+        </div>
+        <svg width="80" height="80" viewBox="0 0 80 80" class="mb-3 glyph-svg">
+          <path d="M8 62 Q 40 12, 72 62" fill="none" stroke="#fbbf24" stroke-opacity="0.25" stroke-width="1"/>
+          <path d="M12 62 Q 40 18, 68 62" fill="none" stroke="#fbbf24" stroke-opacity="0.4" stroke-width="1"/>
+          <path d="M17 62 Q 40 24, 63 62" fill="none" stroke="#fbbf24" stroke-opacity="0.55" stroke-width="1"/>
+          <path d="M22 62 Q 40 30, 58 62" fill="none" stroke="#fbbf24" stroke-opacity="0.7" stroke-width="1.2"/>
+          <path d="M28 62 Q 40 37, 52 62" fill="none" stroke="#fbbf24" stroke-opacity="0.9" stroke-width="1.5"/>
+        </svg>
+        <p class="text-base font-bold">TradingAgent_X</p>
+        <p class="text-[10px] font-mono text-slate-500 mt-0.5">engineer · mistral</p>
+        <p class="text-[10px] font-mono text-slate-600 mt-3">Owner: quant_alpha</p>
+      </div>
+
+      <!-- Card D — revoked -->
+      <div class="min-w-[260px] card-gradient rounded-xl p-5 relative overflow-hidden group cursor-pointer opacity-60">
+        <div class="flex justify-between items-start mb-4">
+          <p class="font-mono text-[11px] text-slate-500">AIL-2026-00042</p>
+          <span class="text-[10px] font-bold text-red-400 bg-red-950 border border-red-900 px-2 py-0.5 rounded">REVOKED</span>
+        </div>
+        <svg width="80" height="80" viewBox="0 0 80 80" class="mb-3 opacity-40">
+          <ellipse cx="40" cy="40" rx="32" ry="25" fill="none" stroke="#f87171" stroke-width="1"/>
+          <ellipse cx="40" cy="40" rx="22" ry="17" fill="none" stroke="#f87171" stroke-width="1"/>
+          <ellipse cx="40" cy="40" rx="12" ry="9"  fill="none" stroke="#f87171" stroke-width="1"/>
+          <line x1="20" y1="20" x2="60" y2="60" stroke="#f87171" stroke-width="2"/>
+        </svg>
+        <p class="text-base font-bold line-through text-slate-500">DeprecatedBot</p>
+        <p class="text-[10px] font-mono text-slate-600 mt-0.5">assistant · unknown</p>
+        <p class="text-[10px] font-mono text-slate-600 mt-3">Revoked · NFT Burned</p>
+      </div>
+    </div>
+
+    <!-- Feature bullets -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-10 reveal">
+      <div class="bg-bg-dark/60 p-6 rounded-xl border border-slate-800">
+        <p class="text-lg mb-1">🔐</p>
+        <h4 class="font-bold text-primary mb-1" data-ko="양도 가능" data-en="Transferable">양도 가능</h4>
+        <p class="text-sm text-slate-400" data-ko="NFT 전송 = 에이전트 소유권 이전" data-en="Transfer the NFT = transfer agent ownership">NFT 전송 = 에이전트 소유권 이전</p>
+      </div>
+      <div class="bg-bg-dark/60 p-6 rounded-xl border border-slate-800">
+        <p class="text-lg mb-1">⛓</p>
+        <h4 class="font-bold text-primary mb-1" data-ko="멀티체인 지원" data-en="Multi-chain">멀티체인 지원</h4>
+        <p class="text-sm text-slate-400" data-ko="Base · ETH · BNB · Polygon · World Chain" data-en="Base · ETH · BNB · Polygon · World Chain">Base · ETH · BNB · Polygon · World Chain</p>
+      </div>
+      <div class="bg-bg-dark/60 p-6 rounded-xl border border-slate-800">
+        <p class="text-lg mb-1">🔥</p>
+        <h4 class="font-bold text-primary mb-1" data-ko="Revoke = Burn" data-en="Revoke = Burn">Revoke = Burn</h4>
+        <p class="text-sm text-slate-400" data-ko="크리덴셜 폐기 즉시 NFT 소각" data-en="Credential revocation instantly burns the NFT">크리덴셜 폐기 즉시 NFT 소각</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ VERIFICATION ════════════════════════════════════════════════════════ -->
+<section id="verify" class="py-24 px-4 sm:px-6 bg-bg-dark">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <h2 class="text-3xl font-bold mb-4" data-ko="누구나 즉시 검증" data-en="Anyone Can Verify Instantly">누구나 즉시 검증</h2>
+      <p class="text-slate-400" data-ko="서드파티 서비스가 에이전트 신원을 실시간으로 확인합니다." data-en="Third-party services verify agent identity in real time.">서드파티 서비스가 에이전트 신원을 실시간으로 확인합니다.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <!-- Flow diagram -->
+      <div class="reveal">
+        <div class="flex items-center gap-4 mb-3">
+          <div class="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shrink-0">
+            <span class="material-symbols-outlined text-slate-400">smart_toy</span>
+          </div>
+          <div class="flex-1 flex flex-col gap-1">
+            <div class="h-px bg-gradient-to-r from-primary/60 to-transparent relative">
+              <div class="absolute -top-2.5 right-0 text-primary text-sm">›</div>
+            </div>
+            <p class="text-xs font-mono text-slate-600 text-right">token</p>
+          </div>
+          <div class="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center border border-primary/40 shrink-0">
+            <span class="material-symbols-outlined text-primary">verified</span>
+          </div>
+          <div class="flex-1 flex flex-col gap-1">
+            <div class="h-px bg-gradient-to-r from-transparent to-primary/60 relative">
+              <div class="absolute -top-2.5 right-0 text-primary text-sm">›</div>
+            </div>
+            <p class="text-xs font-mono text-slate-600">result</p>
+          </div>
+          <div class="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 shrink-0">
+            <span class="material-symbols-outlined text-slate-400">cloud_done</span>
+          </div>
+        </div>
+        <div class="flex justify-between text-[10px] font-mono text-slate-600 uppercase px-1">
+          <span>Agent</span><span>POST /verify</span><span>Your Service</span>
+        </div>
+
+        <div class="mt-8 p-5 bg-surface rounded-xl border border-slate-800">
+          <p class="text-xs text-slate-500 font-mono mb-3">오프라인 검증도 가능 (공개키 사용):</p>
+<pre class="font-mono text-sm text-slate-300 overflow-x-auto"><span class="text-blue-400">import</span> { verifyOffline } <span class="text-blue-400">from</span> <span class="text-green-400">"@22blabs/ail-sdk"</span>
+<span class="text-blue-400">const</span> result = <span class="text-blue-400">await</span> <span class="text-primary">verifyOffline</span>(token, publicKeyJwk)
+<span class="text-slate-500">// No network call needed</span></pre>
+        </div>
+      </div>
+
+      <!-- Response JSON -->
+      <div class="code-block p-6 rounded-xl font-mono text-sm reveal">
+        <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
+          <span class="text-slate-500 text-xs">POST /verify → response</span>
+          <span class="text-green-400 text-xs font-bold">200 OK</span>
+        </div>
+<pre class="text-slate-300 overflow-x-auto">{
+  <span class="text-primary">"valid"</span>:        <span class="text-blue-400">true</span>,
+  <span class="text-primary">"ail_id"</span>:       <span class="text-green-400">"AIL-2026-00001"</span>,
+  <span class="text-primary">"display_name"</span>: <span class="text-green-400">"ClaudeCoder"</span>,
+  <span class="text-primary">"owner_org"</span>:    <span class="text-green-400">"22b_labs"</span>,
+  <span class="text-primary">"issued"</span>:       <span class="text-green-400">"2026-03-17"</span>,
+  <span class="text-primary">"revoked"</span>:      <span class="text-blue-400">false</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SDK ═════════════════════════════════════════════════════════════════ -->
+<section class="py-24 px-4 sm:px-6 border-t border-slate-800/50">
+  <div class="max-w-4xl mx-auto">
+    <div class="mb-10 reveal">
+      <h2 class="text-3xl font-bold mb-2" data-ko="5분 안에 연동" data-en="Integrate in 5 minutes">5분 안에 연동</h2>
+      <p class="text-slate-400" data-ko="JavaScript · Python SDK 제공" data-en="Available for JavaScript and Python">JavaScript · Python SDK 제공</p>
+    </div>
+
+    <div class="bg-[#0d1117] rounded-xl border border-slate-800 overflow-hidden shadow-2xl reveal">
+      <!-- Tabs -->
+      <div class="flex border-b border-slate-800">
+        <button onclick="switchSdkTab('js')" id="tab-js"
+                class="sdk-tab active px-6 py-3 text-sm font-semibold border-b-2 border-transparent transition-all">
+          JavaScript
+        </button>
+        <button onclick="switchSdkTab('py')" id="tab-py"
+                class="sdk-tab px-6 py-3 text-sm font-semibold text-slate-500 border-b-2 border-transparent hover:text-slate-300 transition-all">
+          Python
+        </button>
+      </div>
+
+      <!-- JS content -->
+      <div id="sdk-js" class="p-6 font-mono text-sm overflow-x-auto">
+<pre class="text-slate-300"><span class="text-slate-500"># Install</span>
+<span class="text-primary">npm install</span> @22blabs/ail-sdk
+
+<span class="text-slate-500">// Verify an agent</span>
+<span class="text-blue-400">import</span> { AilClient } <span class="text-blue-400">from</span> <span class="text-green-400">'@22blabs/ail-sdk'</span>
+
+<span class="text-blue-400">const</span> client = <span class="text-blue-400">new</span> <span class="text-primary">AilClient</span>()
+<span class="text-blue-400">const</span> result = <span class="text-blue-400">await</span> client.<span class="text-primary">verify</span>(token)
+console.<span class="text-primary">log</span>(result.valid, result.display_name)
+
+<span class="text-slate-500">// Offline verify (no network)</span>
+<span class="text-blue-400">import</span> { verifyOffline } <span class="text-blue-400">from</span> <span class="text-green-400">'@22blabs/ail-sdk'</span>
+<span class="text-blue-400">const</span> r = <span class="text-blue-400">await</span> <span class="text-primary">verifyOffline</span>(token, publicKeyJwk)</pre>
+      </div>
+
+      <!-- Python content (hidden) -->
+      <div id="sdk-py" class="p-6 font-mono text-sm overflow-x-auto hidden">
+<pre class="text-slate-300"><span class="text-slate-500"># Install</span>
+<span class="text-primary">pip install</span> ail-sdk
+
+<span class="text-slate-500"># Verify an agent</span>
+<span class="text-blue-400">from</span> ail_sdk <span class="text-blue-400">import</span> AilClient
+
+client = <span class="text-primary">AilClient</span>()
+result = client.<span class="text-primary">verify</span>(token)
+<span class="text-primary">print</span>(result[<span class="text-green-400">"valid"</span>], result[<span class="text-green-400">"display_name"</span>])
+
+<span class="text-slate-500"># Offline verify (no network)</span>
+<span class="text-blue-400">from</span> ail_sdk <span class="text-blue-400">import</span> verify_offline
+r = <span class="text-primary">verify_offline</span>(token, public_key_jwk)</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PRICING ════════════════════════════════════════════════════════════ -->
+<section id="pricing" class="py-24 px-4 sm:px-6 bg-surface/30">
+  <div class="max-w-7xl mx-auto">
+    <div class="text-center mb-16 reveal">
+      <h2 class="text-3xl font-bold mb-4" data-ko="심플한 가격" data-en="Simple pricing">심플한 가격</h2>
+      <p class="text-slate-400" data-ko="모든 규모의 프로젝트를 지원합니다." data-en="For projects of every size.">모든 규모의 프로젝트를 지원합니다.</p>
+
+      <!-- Payment methods -->
+      <div class="flex flex-wrap justify-center gap-2 mt-4">
+        <span class="chain-badge text-slate-400">💳 Stripe</span>
+        <span class="chain-badge text-blue-400">◎ USDC</span>
+        <span class="chain-badge text-blue-500">⬡ ETH</span>
+        <span class="chain-badge text-yellow-400">⬡ BNB</span>
+        <span class="chain-badge text-purple-400">⬡ POL</span>
+        <span class="chain-badge text-green-400">◎ SOL</span>
+        <span class="chain-badge text-cyan-400">⬡ WLD</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Free -->
+      <div class="p-8 rounded-2xl bg-bg-dark border border-slate-800 flex flex-col reveal">
+        <h3 class="text-xl font-bold mb-1">Free</h3>
+        <p class="text-slate-500 text-sm mb-4" data-ko="개인 개발자 · 테스트" data-en="Personal · Testing">개인 개발자 · 테스트</p>
+        <div class="text-4xl font-black mb-6">$0<span class="text-sm font-normal text-slate-500"> /mo</span></div>
+        <ul class="space-y-3 mb-8 flex-1 text-sm">
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="에이전트 1개" data-en="1 Agent">에이전트 1개</span></li>
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> JWT 크리덴셜</li>
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="기본 검증 API" data-en="Basic verify API">기본 검증 API</span></li>
+          <li class="flex items-center gap-2 text-slate-500 line-through text-xs"><span class="material-symbols-outlined text-slate-700 text-base">remove_circle</span> NFT 발행</li>
+        </ul>
+        <button class="w-full py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 transition-colors text-sm font-semibold">
+          Get Started
+        </button>
+      </div>
+
+      <!-- Pro (Most Popular) -->
+      <div class="p-8 rounded-2xl bg-bg-dark border-2 border-primary flex flex-col relative shadow-2xl shadow-primary/15 reveal">
+        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg shadow-primary/30">
+          Most Popular
+        </div>
+        <h3 class="text-xl font-bold mb-1">Pro</h3>
+        <p class="text-slate-500 text-sm mb-4" data-ko="팀 · 프로덕션" data-en="Team · Production">팀 · 프로덕션</p>
+        <div class="text-4xl font-black mb-6">$29<span class="text-sm font-normal text-slate-500"> /mo</span></div>
+        <ul class="space-y-3 mb-8 flex-1 text-sm">
+          <li class="flex items-center gap-2 text-slate-200 font-medium"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="에이전트 20개" data-en="20 Agents">에이전트 20개</span></li>
+          <li class="flex items-center gap-2 text-slate-200 font-medium"><span class="material-symbols-outlined text-primary text-base">check_circle</span> JWT + NFT 발행</li>
+          <li class="flex items-center gap-2 text-slate-200 font-medium"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="검증 API 10,000회/월" data-en="10,000 verifications/mo">검증 API 10,000회/월</span></li>
+          <li class="flex items-center gap-2 text-slate-200 font-medium"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="멀티체인 NFT" data-en="Multi-chain NFT">멀티체인 NFT</span></li>
+        </ul>
+        <button class="w-full py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold transition-all text-sm shadow-lg shadow-primary/25">
+          Go Pro
+        </button>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="p-8 rounded-2xl bg-bg-dark border border-slate-800 flex flex-col reveal">
+        <h3 class="text-xl font-bold mb-1">Enterprise</h3>
+        <p class="text-slate-500 text-sm mb-4" data-ko="대규모 · 커스텀" data-en="Scale · Custom">대규모 · 커스텀</p>
+        <div class="text-4xl font-black mb-6 text-slate-300" data-ko="문의" data-en="Contact">문의</div>
+        <ul class="space-y-3 mb-8 flex-1 text-sm">
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="에이전트 무제한" data-en="Unlimited Agents">에이전트 무제한</span></li>
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="커스텀 설정" data-en="Custom configuration">커스텀 설정</span></li>
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="전용 지원 · SLA" data-en="Dedicated support · SLA">전용 지원 · SLA</span></li>
+          <li class="flex items-center gap-2 text-slate-400"><span class="material-symbols-outlined text-primary text-base">check_circle</span> <span data-ko="자체 배포 가능 (오픈소스)" data-en="Self-host (open source)">자체 배포 가능 (오픈소스)</span></li>
+        </ul>
+        <button class="w-full py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 transition-colors text-sm font-semibold">
+          Contact Sales
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAQ ════════════════════════════════════════════════════════════════ -->
+<section class="py-24 px-4 sm:px-6 max-w-3xl mx-auto">
+  <h2 class="text-3xl font-bold mb-12 text-center reveal"
+      data-ko="자주 묻는 질문" data-en="FAQ">자주 묻는 질문</h2>
+
+  <div class="space-y-3 reveal" id="faq">
+    <div class="faq-item border border-slate-800 rounded-xl overflow-hidden">
+      <button class="w-full p-5 flex justify-between items-center bg-slate-900/40 hover:bg-slate-900/70 transition-colors text-left" onclick="toggleFaq(this)">
+        <span class="font-semibold pr-4" data-ko="NFT는 어떤 체인에 발행되나요?" data-en="Which chains does NFT minting support?">NFT는 어떤 체인에 발행되나요?</span>
+        <span class="material-symbols-outlined faq-icon shrink-0 text-slate-400">expand_more</span>
+      </button>
+      <div class="faq-answer bg-slate-900/20">
+        <p class="px-5 pb-5 pt-2 text-slate-400 text-sm leading-relaxed"
+           data-ko="Base(기본), Ethereum, BNB Chain, Polygon, World Chain을 지원합니다. 등록 시 원하는 체인을 선택할 수 있으며, 가스비가 저렴한 Base를 권장합니다."
+           data-en="We support Base (default), Ethereum, BNB Chain, Polygon, and World Chain. You can choose your chain at registration. We recommend Base for its low gas fees.">
+          Base(기본), Ethereum, BNB Chain, Polygon, World Chain을 지원합니다. 등록 시 원하는 체인을 선택할 수 있으며, 가스비가 저렴한 Base를 권장합니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item border border-slate-800 rounded-xl overflow-hidden">
+      <button class="w-full p-5 flex justify-between items-center bg-slate-900/40 hover:bg-slate-900/70 transition-colors text-left" onclick="toggleFaq(this)">
+        <span class="font-semibold pr-4" data-ko="크리덴셜을 잃어버리면?" data-en="What if I lose my credential?">크리덴셜을 잃어버리면?</span>
+        <span class="material-symbols-outlined faq-icon shrink-0 text-slate-400">expand_more</span>
+      </button>
+      <div class="faq-answer bg-slate-900/20">
+        <p class="px-5 pb-5 pt-2 text-slate-400 text-sm leading-relaxed"
+           data-ko="오너 키로 재발급 가능합니다. NFT 소유권은 지갑에 유지됩니다. 오너 키를 분실한 경우 이메일 재인증 후 키 재발급이 가능합니다."
+           data-en="You can re-issue credentials with your owner key. NFT ownership remains in your wallet. If you lose your owner key, re-verify your email to get a new keypair.">
+          오너 키로 재발급 가능합니다. NFT 소유권은 지갑에 유지됩니다. 오너 키를 분실한 경우 이메일 재인증 후 키 재발급이 가능합니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item border border-slate-800 rounded-xl overflow-hidden">
+      <button class="w-full p-5 flex justify-between items-center bg-slate-900/40 hover:bg-slate-900/70 transition-colors text-left" onclick="toggleFaq(this)">
+        <span class="font-semibold pr-4" data-ko="에이전트가 악용되면 어떻게 하나요?" data-en="What if an agent is misused?">에이전트가 악용되면 어떻게 하나요?</span>
+        <span class="material-symbols-outlined faq-icon shrink-0 text-slate-400">expand_more</span>
+      </button>
+      <div class="faq-answer bg-slate-900/20">
+        <p class="px-5 pb-5 pt-2 text-slate-400 text-sm leading-relaxed"
+           data-ko="오너는 언제든 Revoke할 수 있습니다. Revoke 즉시 NFT가 소각되고, 검증 API에서 valid: false를 반환합니다. 이후 해당 에이전트의 토큰은 어디서도 통하지 않습니다."
+           data-en="The owner can revoke at any time. On revocation, the NFT is burned immediately and the verify API returns valid: false. The agent's token becomes invalid everywhere.">
+          오너는 언제든 Revoke할 수 있습니다. Revoke 즉시 NFT가 소각되고, 검증 API에서 valid: false를 반환합니다. 이후 해당 에이전트의 토큰은 어디서도 통하지 않습니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item border border-slate-800 rounded-xl overflow-hidden">
+      <button class="w-full p-5 flex justify-between items-center bg-slate-900/40 hover:bg-slate-900/70 transition-colors text-left" onclick="toggleFaq(this)">
+        <span class="font-semibold pr-4" data-ko="블록체인 지갑 없이 사용 가능한가요?" data-en="Can I use AIL without a crypto wallet?">블록체인 지갑 없이 사용 가능한가요?</span>
+        <span class="material-symbols-outlined faq-icon shrink-0 text-slate-400">expand_more</span>
+      </button>
+      <div class="faq-answer bg-slate-900/20">
+        <p class="px-5 pb-5 pt-2 text-slate-400 text-sm leading-relaxed"
+           data-ko="JWT 크리덴셜만 사용할 경우 지갑이 필요 없습니다. NFT 발행 시에만 EVM 호환 지갑(MetaMask 등)이 필요합니다."
+           data-en="No wallet needed for JWT-only credentials. A wallet is only required when minting the NFT (Free plan skips this).">
+          JWT 크리덴셜만 사용할 경우 지갑이 필요 없습니다. NFT 발행 시에만 EVM 호환 지갑(MetaMask 등)이 필요합니다.
+        </p>
+      </div>
+    </div>
+
+    <div class="faq-item border border-slate-800 rounded-xl overflow-hidden">
+      <button class="w-full p-5 flex justify-between items-center bg-slate-900/40 hover:bg-slate-900/70 transition-colors text-left" onclick="toggleFaq(this)">
+        <span class="font-semibold pr-4" data-ko="자체 서버에 직접 배포할 수 있나요?" data-en="Can I self-host?">자체 서버에 직접 배포할 수 있나요?</span>
+        <span class="material-symbols-outlined faq-icon shrink-0 text-slate-400">expand_more</span>
+      </button>
+      <div class="faq-answer bg-slate-900/20">
+        <p class="px-5 pb-5 pt-2 text-slate-400 text-sm leading-relaxed"
+           data-ko="오픈소스(MIT)이므로 자유롭게 배포 가능합니다. 단, 22B Labs 마스터 키로 서명된 신뢰 체인은 직접 운영 시 적용되지 않습니다."
+           data-en="Yes, the project is MIT-licensed and fully self-hostable. Note that the 22B Labs master-key trust chain does not apply to self-hosted instances.">
+          오픈소스(MIT)이므로 자유롭게 배포 가능합니다. 단, 22B Labs 마스터 키로 서명된 신뢰 체인은 직접 운영 시 적용되지 않습니다.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+<footer class="py-16 border-t border-slate-800 px-4 sm:px-6">
+  <div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+      <div class="col-span-2 md:col-span-1">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="material-symbols-outlined text-primary">fingerprint</span>
+          <span class="font-bold">22B Labs</span>
+        </div>
+        <p class="text-slate-500 text-sm mb-4" data-ko="AI 에이전트의 공식 신원을 발급합니다." data-en="Building the identity layer for AI agents.">AI 에이전트의 공식 신원을 발급합니다.</p>
+        <div class="flex gap-3">
+          <a href="https://github.com/sinmb79/Agent-Identity-Layer" target="_blank"
+             class="text-slate-500 hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-xl">terminal</span>
+          </a>
+          <a href="#" class="text-slate-500 hover:text-white transition-colors">
+            <span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+          </a>
+        </div>
+      </div>
+      <div>
+        <h4 class="font-bold mb-4 text-sm">Product</h4>
+        <ul class="text-sm text-slate-500 space-y-2.5">
+          <li><a class="hover:text-primary transition-colors" href="#solution" data-ko="문서" data-en="Docs">문서</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#pricing" data-ko="가격" data-en="Pricing">가격</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#" data-ko="대시보드" data-en="Dashboard">대시보드</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#">SDK</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold mb-4 text-sm">Company</h4>
+        <ul class="text-sm text-slate-500 space-y-2.5">
+          <li><a class="hover:text-primary transition-colors" href="#" data-ko="소개" data-en="About">소개</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#" data-ko="블로그" data-en="Blog">블로그</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#">GitHub</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 class="font-bold mb-4 text-sm">Legal</h4>
+        <ul class="text-sm text-slate-500 space-y-2.5">
+          <li><a class="hover:text-primary transition-colors" href="#" data-ko="개인정보처리방침" data-en="Privacy">개인정보처리방침</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#" data-ko="이용약관" data-en="Terms">이용약관</a></li>
+          <li><a class="hover:text-primary transition-colors" href="#">MIT License</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="flex flex-col md:flex-row justify-between items-center border-t border-slate-800/60 pt-8 gap-3">
+      <p class="text-slate-700 text-xs font-mono">© 2026 22B Labs. Open source under MIT License.</p>
+      <p class="text-slate-700 text-xs font-mono">Agent Identity Layer · v1.0</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ JAVASCRIPT ══════════════════════════════════════════════════════════ -->
+<script>
+  // ── Scroll reveal ──────────────────────────────────────────────────────
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add("visible");
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+
+  // ── FAQ accordion ──────────────────────────────────────────────────────
+  function toggleFaq(btn) {
+    const item   = btn.closest(".faq-item");
+    const answer = item.querySelector(".faq-answer");
+    const isOpen = item.classList.contains("open");
+
+    // Close all
+    document.querySelectorAll(".faq-item.open").forEach(el => {
+      el.classList.remove("open");
+      el.querySelector(".faq-answer").classList.remove("open");
+    });
+
+    if (!isOpen) {
+      item.classList.add("open");
+      answer.classList.add("open");
+    }
+  }
+
+  // ── SDK tabs ───────────────────────────────────────────────────────────
+  function switchSdkTab(lang) {
+    document.getElementById("sdk-js").classList.toggle("hidden", lang !== "js");
+    document.getElementById("sdk-py").classList.toggle("hidden", lang !== "py");
+    document.getElementById("tab-js").classList.toggle("active", lang === "js");
+    document.getElementById("tab-py").classList.toggle("active", lang === "py");
+  }
+
+  // ── Language toggle (KO ↔ EN) ──────────────────────────────────────────
+  let currentLang = "ko";
+  function toggleLang() {
+    currentLang = currentLang === "ko" ? "en" : "ko";
+    document.getElementById("lang-btn").textContent = currentLang === "ko" ? "EN" : "KO";
+    document.querySelectorAll("[data-ko]").forEach(el => {
+      const attr = el.tagName === "INPUT" ? "placeholder" : "textContent";
+      if (attr === "textContent") {
+        el.textContent = el.dataset[currentLang];
+      }
+    });
+  }
+</script>
+</body>
+</html>
