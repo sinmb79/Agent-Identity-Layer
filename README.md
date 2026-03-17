@@ -111,6 +111,26 @@ npm run validate:examples
 
 This validates the example JSON envelopes against the minimum v0 rules described in the spec.
 
+## Demo UI
+
+You can also run the local visual demo:
+
+```bash
+npm run demo
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4317
+```
+
+### Demo screenshot
+
+This is how the current local signal-glyph demo looks when running on a machine:
+
+![Agent Identity Signal Glyph demo](docs/images/signal-glyph-demo.jpg)
+
 ## Initial repo map
 
 - `docs/thesis-one-pager.md` — public framing and why this matters
