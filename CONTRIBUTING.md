@@ -35,7 +35,7 @@ Please avoid opening PRs that immediately add:
 - Prefer practical language over standards theater
 - Distinguish clearly between current scope and future work
 - Keep examples realistic and auditable
-- Do not include secrets, credentials, or private user data in examples
+- Do not include secrets, credentials, private user data, or personally identifying information in examples
 
 ## PR checklist
 

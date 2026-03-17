@@ -6,7 +6,7 @@
 - [ ] one-pager exists and is understandable without prior context
 - [ ] category wording is consistent: `Agent Identity Layer`
 - [ ] no inflated claims about verification, security, or compliance
-- [ ] no secrets, tokens, private paths, or internal logs are committed
+- [ ] no secrets, tokens, private paths, internal logs, or personal identifiers are committed
 - [ ] license selected and added
 - [ ] contribution expectations are minimally documented
 - [ ] at least one concrete example of delegated-agent identity is planned

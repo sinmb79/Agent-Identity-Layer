@@ -66,6 +66,18 @@ This repo starts with:
 - not a guarantee that an agent is truthful
 - not a heavy PKI-first standard in v0
 
+## Privacy and security hygiene
+
+This repository is documentation-first and is intentionally written to avoid exposing private or security-sensitive material.
+
+Rules for examples and docs in this repo:
+
+- use placeholder IDs and synthetic metadata only
+- do not include secrets, tokens, credentials, private keys, or auth files
+- do not include private user data or personally identifying information
+- do not present draft metadata as proof of truthfulness or legal identity
+- keep security claims modest and auditable
+
 ## Initial repo map
 
 - `docs/thesis-one-pager.md` — public framing and why this matters
