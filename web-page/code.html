@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#508df7",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#0d0f14",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass {
+            background: rgba(13, 15, 20, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .id-card-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid rgba(80, 141, 247, 0.3);
+        }
+        .code-block {
+            background: #161b22;
+            border: 1px solid #30363d;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-dark text-slate-100 font-display antialiased">
+<!-- Navbar -->
+<nav class="fixed top-0 w-full z-50 glass">
+<div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-3xl">fingerprint</span>
+<span class="font-bold text-lg tracking-tight">22B Labs <span class="text-primary/80 font-medium">· AIL</span></span>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all">
+                Get Started
+            </button>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="pt-32 pb-20 px-4">
+<div class="max-w-7xl mx-auto text-center">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold mb-6">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                v1.0 MAINNET LIVE
+            </div>
+<h1 class="text-4xl md:text-6xl font-black tracking-tight mb-6 leading-tight">
+                AI 에이전트를 위한<br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">공식 신분증</span>
+</h1>
+<p class="text-slate-400 text-lg max-w-2xl mx-auto mb-10 leading-relaxed">
+                에이전트가 누구인지, 누가 소유하는지, 무엇을 할 수 있는지. 22B Labs가 서명한 신원 크리덴셜과 NFT ID 카드를 즉시 발급합니다.
+            </p>
+<!-- Floating ID Card Mockup -->
+<div class="relative mx-auto w-full max-w-sm mt-12 aspect-[1.58/1] id-card-gradient rounded-xl p-6 shadow-2xl shadow-primary/20 flex flex-col justify-between text-left transform -rotate-2 hover:rotate-0 transition-transform duration-500 overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+<div class="flex justify-between items-start z-10">
+<div class="space-y-1">
+<p class="text-[10px] uppercase tracking-widest text-slate-500 font-mono">Agent Identifier</p>
+<p class="font-mono text-sm text-primary">AIL-2026-00001</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">qr_code_2</span>
+</div>
+<div class="z-10">
+<h3 class="text-2xl font-bold mb-1">ClaudeCoder</h3>
+<div class="grid grid-cols-2 gap-4 mt-4">
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-mono">Owner</p>
+<p class="font-mono text-xs">22b_labs</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-slate-500 font-mono">Issued</p>
+<p class="font-mono text-xs">2026-03-17</p>
+</div>
+</div>
+</div>
+<div class="absolute bottom-4 right-4 opacity-20">
+<span class="material-symbols-outlined text-6xl">verified_user</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Problem Section -->
+<section class="py-20 bg-background-light dark:bg-slate-900/30">
+<div class="max-w-7xl mx-auto px-4">
+<h2 class="text-3xl font-bold mb-12 text-center">The Trust Layer for Agents</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="p-8 rounded-xl bg-background-dark border border-slate-800 hover:border-primary/50 transition-colors group">
+<span class="material-symbols-outlined text-primary text-4xl mb-4 group-hover:scale-110 transition-transform">security</span>
+<h3 class="text-xl font-bold mb-2">Trust Issues</h3>
+<p class="text-slate-400">에이전트 뒤에 누가 있는지, 이 에이전트가 진짜인지 확인할 방법이 필요합니다.</p>
+</div>
+<div class="p-8 rounded-xl bg-background-dark border border-slate-800 hover:border-primary/50 transition-colors group">
+<span class="material-symbols-outlined text-primary text-4xl mb-4 group-hover:scale-110 transition-transform">history_edu</span>
+<h3 class="text-xl font-bold mb-2">Accountability</h3>
+<p class="text-slate-400">에이전트의 활동에 대한 책임 소재를 명확히 하는 검증 가능한 소유권 체인.</p>
+</div>
+<div class="p-8 rounded-xl bg-background-dark border border-slate-800 hover:border-primary/50 transition-colors group">
+<span class="material-symbols-outlined text-primary text-4xl mb-4 group-hover:scale-110 transition-transform">hub</span>
+<h3 class="text-xl font-bold mb-2">Interoperability</h3>
+<p class="text-slate-400">여러 플랫폼에서 즉시 작동하는 끊김 없는 크로스 플랫폼 디지털 신분증.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Solution (3-Step Flow) -->
+<section class="py-24 px-4">
+<div class="max-w-4xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-3xl font-bold mb-4">3단계면 충분합니다</h2>
+<p class="text-slate-400">API를 통해 단 몇 초 만에 에이전트 신원을 생성하세요.</p>
+</div>
+<div class="space-y-16">
+<!-- Step 1 -->
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-1">
+<div class="text-primary font-mono mb-2">STEP 01</div>
+<h3 class="text-2xl font-bold mb-4">Registration</h3>
+<p class="text-slate-400 mb-6">소유자의 지갑을 등록하고 에이전트의 기본 정보를 설정합니다.</p>
+</div>
+<div class="flex-1 w-full code-block p-4 rounded-lg font-mono text-sm shadow-xl">
+<div class="flex gap-1.5 mb-3">
+<div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+</div>
+<p class="text-pink-400">POST <span class="text-slate-300">/owners/register</span></p>
+<pre class="text-slate-400 mt-2">{
+  "owner": "0x22B...f7",
+  "name": "ClaudeCoder",
+  "type": "AI_AGENT"
+}</pre>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="flex flex-col md:flex-row-reverse gap-8 items-center">
+<div class="flex-1">
+<div class="text-primary font-mono mb-2">STEP 02</div>
+<h3 class="text-2xl font-bold mb-4">Agent Sign</h3>
+<p class="text-slate-400 mb-6">에이전트가 고유 키 페어를 생성하고 소유자와의 관계를 서명합니다.</p>
+</div>
+<div class="flex-1 w-full code-block p-4 rounded-lg font-mono text-sm shadow-xl">
+<div class="flex gap-1.5 mb-3">
+<div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+</div>
+<p class="text-pink-400">POST <span class="text-slate-300">/agent/sign</span></p>
+<pre class="text-slate-400 mt-2">{
+  "agent_pubkey": "ed25519...",
+  "signature": "sig_8823..."
+}</pre>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="flex flex-col md:flex-row gap-8 items-center">
+<div class="flex-1">
+<div class="text-primary font-mono mb-2">STEP 03</div>
+<h3 class="text-2xl font-bold mb-4">Issue Card</h3>
+<p class="text-slate-400 mb-6">온체인 NFT ID 카드와 오프체인 크리덴셜을 즉시 발급받습니다.</p>
+</div>
+<div class="flex-1 w-full code-block p-4 rounded-lg font-mono text-sm shadow-xl">
+<div class="flex gap-1.5 mb-3">
+<div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+<div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+</div>
+<p class="text-green-400">// Response: 201 Created</p>
+<pre class="text-slate-400 mt-2">{
+  "status": "issued",
+  "token_id": "84221",
+  "ail_uri": "ipfs://..."
+}</pre>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- NFT ID Card Section -->
+<section class="py-24 bg-gradient-to-b from-background-dark to-slate-900 overflow-hidden">
+<div class="max-w-7xl mx-auto px-4">
+<div class="text-center mb-16">
+<h2 class="text-4xl font-black mb-4">신분증은 당신의 지갑에</h2>
+<p class="text-slate-400">에이전트의 신원은 영구적이며 투명하게 관리됩니다.</p>
+</div>
+<div class="flex flex-nowrap gap-6 overflow-x-auto pb-12 no-scrollbar">
+<!-- Card 1 -->
+<div class="min-w-[280px] aspect-[1.58/1] id-card-gradient rounded-xl p-5 relative overflow-hidden group">
+<div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="Geometric signal glyph pattern background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnib4H3JKqqR6pU-VKCRxqX1MduIIK-NDdBka7L1K65_BN6GViCxbWyNFAO8ouSxRh4A7qWEarD-GME2IGJMBYGjoJQaJyGNlO-g2z4DRR6KUH-wcZ5k7lVH3idLYGbMB6JwQ_3XmdqnO1VpMZUN1W3t_3xK9tgP4pslx9UPU_omUNgf7kuRGAdPywBJDfsJqPZvx9KbNqMjbcPFXnPBHok5RUoowbagOI01nXgeF7CwkppIMjdJ6f9041E05NzaCt0AuGUUQOUEY"/>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-mono text-primary">AIL-2026-00104</span>
+<span class="material-symbols-outlined text-xs">database</span>
+</div>
+<div>
+<p class="text-lg font-bold">ResearchBot</p>
+<p class="text-[10px] font-mono text-slate-400">Owner: dev_ryan</p>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[280px] aspect-[1.58/1] id-card-gradient rounded-xl p-5 relative overflow-hidden group border-primary/50">
+<div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="Abstract digital circuit pattern" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbka6hh2saX9TwOBW272Cl6RnKcQQ96ozlo7-HpxHlMkoLHouU5tJjrDV1DV-T-Po7OMknqmel2-6Ae-HG2Mk-M73cUGbIqa8a4fuOui3vVYvx8E8uXhd6LAR2Zk1Eze4pH-BA6vHldhnwdqLNwaFgkOuyLK8nIl_-KYlz_bgr2gvwO5FzxBgb15Lt8Uq0LWUPT53N2cYkBmB1m7vvQxBipg-6WVAKT0B27ZNV-k-F6aprDXJ89iCthLXMGKpbX9bRgK_1U3utNxc"/>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-mono text-primary">AIL-2026-00001</span>
+<span class="material-symbols-outlined text-xs">bolt</span>
+</div>
+<div>
+<p class="text-lg font-bold">ClaudeCoder</p>
+<p class="text-[10px] font-mono text-slate-400">Owner: 22b_labs</p>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[280px] aspect-[1.58/1] id-card-gradient rounded-xl p-5 relative overflow-hidden group">
+<div class="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="Minimalist pulse wave graphics" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlDubnXtK4Fp8td1V1ax6M_ePM7mzETLJaSeQipwWAS1DxmMQrGHvPGXl_p8Jg2c4J4c6oy2GnlSyAFfhpcM3k6Drap_m88jPwtBKaeyAzkouA-ooJTKLaPZgeFRZSKdtH51EVxiV5Xroo58SK9X1ZpZ47SImyriGqUCmJrRzFjaeMM1eZ-9BA53tddbRlku4EpcMc0uhKrEr1QY431smSDuQNIRn8btcTJ35fAZqdtqLW4vrD0ZOSnnJ2IpJLGd3u9W4rxvg2Vcg"/>
+</div>
+<div class="relative z-10 h-full flex flex-col justify-between">
+<div class="flex justify-between items-center">
+<span class="text-[10px] font-mono text-primary">AIL-2026-00921</span>
+<span class="material-symbols-outlined text-xs">token</span>
+</div>
+<div>
+<p class="text-lg font-bold">TradingAgent_X</p>
+<p class="text-[10px] font-mono text-slate-400">Owner: quant_alpha</p>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+<div class="bg-background-dark/50 p-6 rounded-xl border border-slate-800">
+<h4 class="font-bold text-primary mb-2">Transferable</h4>
+<p class="text-sm text-slate-400">에이전트의 명성과 소유권을 다른 지갑으로 안전하게 양도할 수 있습니다.</p>
+</div>
+<div class="bg-background-dark/50 p-6 rounded-xl border border-slate-800">
+<h4 class="font-bold text-primary mb-2">Base Network</h4>
+<p class="text-sm text-slate-400">L2 Base 네트워크 기반으로 가장 빠른 속도와 저렴한 가스비를 보장합니다.</p>
+</div>
+<div class="bg-background-dark/50 p-6 rounded-xl border border-slate-800">
+<h4 class="font-bold text-primary mb-2">Revoke = Burn</h4>
+<p class="text-sm text-slate-400">소유자가 권한을 회수하면 NFT는 즉시 소각되어 신원이 무효화됩니다.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Verification Section -->
+<section class="py-24 px-4 bg-background-dark">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-3xl font-bold mb-4">어디서든 즉시 검증</h2>
+<p class="text-slate-400">서드파티 서비스가 에이전트의 신원을 실시간으로 확인합니다.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="space-y-8">
+<div class="flex items-center gap-6">
+<div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+<span class="material-symbols-outlined text-primary">smart_toy</span>
+</div>
+<div class="flex-1 h-px bg-gradient-to-r from-primary/50 to-transparent relative">
+<div class="absolute -top-3 right-0 material-symbols-outlined text-primary text-xl">arrow_forward</div>
+</div>
+<div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary/40">
+<span class="material-symbols-outlined text-primary">verified</span>
+</div>
+<div class="flex-1 h-px bg-gradient-to-r from-transparent to-primary/50 relative">
+<div class="absolute -top-3 left-0 material-symbols-outlined text-primary text-xl">arrow_back</div>
+</div>
+<div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+<span class="material-symbols-outlined text-slate-400">cloud_done</span>
+</div>
+</div>
+<div class="flex justify-between text-xs font-mono text-slate-500 uppercase px-2">
+<span>Agent Token</span>
+<span>Verify API</span>
+<span>Response</span>
+</div>
+</div>
+<div class="code-block p-6 rounded-xl font-mono text-sm">
+<div class="flex justify-between items-center mb-4 border-bottom border-slate-800 pb-2">
+<span class="text-slate-500">verification_response.json</span>
+<span class="text-green-500">200 OK</span>
+</div>
+<pre class="text-slate-300">{
+  <span class="text-primary">"verified"</span>: <span class="text-blue-400">true</span>,
+  <span class="text-primary">"agent_id"</span>: <span class="text-green-400">"AIL-2026-00001"</span>,
+  <span class="text-primary">"owner_address"</span>: <span class="text-green-400">"0x22B...f7"</span>,
+  <span class="text-primary">"capabilities"</span>: [
+    <span class="text-green-400">"code_write"</span>,
+    <span class="text-green-400">"api_access"</span>
+  ],
+  <span class="text-primary">"timestamp"</span>: <span class="text-green-400">"2026-03-17T12:00:00Z"</span>
+}</pre>
+</div>
+</div>
+</div>
+</section>
+<!-- SDK Section -->
+<section class="py-24 px-4 border-t border-slate-800">
+<div class="max-w-4xl mx-auto">
+<h2 class="text-3xl font-bold mb-8">Developer SDK</h2>
+<div class="bg-[#161b22] rounded-xl border border-slate-800 overflow-hidden shadow-2xl">
+<div class="flex border-b border-slate-800">
+<button class="px-6 py-3 text-sm font-semibold border-b-2 border-primary bg-slate-800/50">JavaScript</button>
+<button class="px-6 py-3 text-sm font-semibold text-slate-500 hover:text-slate-300">Python</button>
+</div>
+<div class="p-6 font-mono text-sm overflow-x-auto">
+<pre class="text-slate-300"><span class="text-slate-500">// Install the SDK</span>
+<span class="text-primary">npm install</span> @22b-labs/ail-sdk
+
+<span class="text-slate-500">// Verify an agent identity</span>
+<span class="text-blue-400">import</span> { AILClient } <span class="text-blue-400">from</span> <span class="text-green-400">'@22b-labs/ail-sdk'</span>;
+
+<span class="text-blue-400">const</span> client = <span class="text-blue-400">new</span> <span class="text-primary">AILClient</span>(process.env.AIL_KEY);
+<span class="text-blue-400">const</span> isVerified = <span class="text-blue-400">await</span> client.<span class="text-primary">verify</span>(agentToken);
+
+console.<span class="text-primary">log</span>(<span class="text-green-400">`Verified: ${isVerified}`</span>);</pre>
+</div>
+</div>
+</div>
+</section>
+<!-- Pricing Section -->
+<section class="py-24 px-4 bg-background-light dark:bg-slate-900/30">
+<div class="max-w-7xl mx-auto">
+<div class="text-center mb-16">
+<h2 class="text-3xl font-bold mb-4">Pricing</h2>
+<p class="text-slate-400">모든 규모의 에이전트 프로젝트를 지원합니다.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Free -->
+<div class="p-8 rounded-2xl bg-background-dark border border-slate-800 flex flex-col">
+<h3 class="text-xl font-bold mb-2">Free</h3>
+<div class="text-3xl font-bold mb-6">$0<span class="text-sm font-normal text-slate-500"> /mo</span></div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> 3 Agents</li>
+<li class="flex items-center gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Community Support</li>
+<li class="flex items-center gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Public ID Gallery</li>
+</ul>
+<button class="w-full py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors">Get Started</button>
+</div>
+<!-- Pro -->
+<div class="p-8 rounded-2xl bg-background-dark border-2 border-primary flex flex-col relative shadow-2xl shadow-primary/10">
+<div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Most Popular</div>
+<h3 class="text-xl font-bold mb-2">Pro</h3>
+<div class="text-3xl font-bold mb-6">$29<span class="text-sm font-normal text-slate-500"> /mo</span></div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-300 font-medium"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Unlimited Agents</li>
+<li class="flex items-center gap-2 text-sm text-slate-300 font-medium"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Priority API Access</li>
+<li class="flex items-center gap-2 text-sm text-slate-300 font-medium"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Custom Metadata</li>
+<li class="flex items-center gap-2 text-sm text-slate-300 font-medium"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Analytics Dashboard</li>
+</ul>
+<button class="w-full py-2 rounded-lg bg-primary text-white font-bold hover:bg-primary/90 transition-all">Go Pro</button>
+</div>
+<!-- Enterprise -->
+<div class="p-8 rounded-2xl bg-background-dark border border-slate-800 flex flex-col">
+<h3 class="text-xl font-bold mb-2">Enterprise</h3>
+<div class="text-3xl font-bold mb-6">Custom</div>
+<ul class="space-y-4 mb-8 flex-1">
+<li class="flex items-center gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Private Deployment</li>
+<li class="flex items-center gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Dedicated Node</li>
+<li class="flex items-center gap-2 text-sm text-slate-400"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> 24/7 SLA</li>
+</ul>
+<button class="w-full py-2 rounded-lg border border-slate-700 hover:bg-slate-800 transition-colors">Contact Sales</button>
+</div>
+</div>
+</div>
+</section>
+<!-- FAQ -->
+<section class="py-24 px-4 max-w-3xl mx-auto">
+<h2 class="text-3xl font-bold mb-12 text-center">자주 묻는 질문</h2>
+<div class="space-y-4">
+<div class="border border-slate-800 rounded-xl overflow-hidden">
+<button class="w-full p-5 flex justify-between items-center bg-slate-900/50">
+<span class="font-semibold text-left">AIL은 어떤 블록체인을 사용하나요?</span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+<div class="border border-slate-800 rounded-xl overflow-hidden">
+<button class="w-full p-5 flex justify-between items-center bg-slate-900/50">
+<span class="font-semibold text-left">기존 지갑과 연동이 가능한가요?</span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+<div class="border border-slate-800 rounded-xl overflow-hidden">
+<button class="w-full p-5 flex justify-between items-center bg-slate-900/50">
+<span class="font-semibold text-left">NFT 신분증은 전송 가능한가요?</span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+<div class="border border-slate-800 rounded-xl overflow-hidden">
+<button class="w-full p-5 flex justify-between items-center bg-slate-900/50">
+<span class="font-semibold text-left">검증 API의 속도는 어느 정도인가요?</span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+<div class="border border-slate-800 rounded-xl overflow-hidden">
+<button class="w-full p-5 flex justify-between items-center bg-slate-900/50">
+<span class="font-semibold text-left">에이전트 소유권을 변경하려면 어떻게 하나요?</span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="py-16 border-t border-slate-800 px-4">
+<div class="max-w-7xl mx-auto">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+<div>
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary">fingerprint</span>
+<span class="font-bold">22B Labs</span>
+</div>
+<p class="text-slate-500 text-sm">Building the future of agentic identity.</p>
+</div>
+<div>
+<h4 class="font-bold mb-4">Product</h4>
+<ul class="text-sm text-slate-500 space-y-2">
+<li><a class="hover:text-primary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">API Docs</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">SDK</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-4">Company</h4>
+<ul class="text-sm text-slate-500 space-y-2">
+<li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-4">Legal</h4>
+<ul class="text-sm text-slate-500 space-y-2">
+<li><a class="hover:text-primary transition-colors" href="#">Privacy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Terms</a></li>
+</ul>
+</div>
+</div>
+<div class="flex flex-col md:flex-row justify-between items-center border-t border-slate-900 pt-8 gap-4">
+<p class="text-slate-600 text-xs font-mono">© 2026 22B Labs. Released under MIT License.</p>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer hover:text-white transition-colors">terminal</span>
+<span class="material-symbols-outlined text-slate-500 cursor-pointer hover:text-white transition-colors">account_balance_wallet</span>
+<span class="material-symbols-outlined text-slate-500 cursor-pointer hover:text-white transition-colors">hub</span>
+</div>
+</div>
+</div>
+</footer>
+</body></html>
