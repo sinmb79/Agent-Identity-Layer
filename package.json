@@ -1,0 +1,10 @@
+{
+  "name": "agent-identity-layer",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Documentation-first repo with local validation utilities for Agent Identity Layer examples.",
+  "type": "module",
+  "scripts": {
+    "validate:examples": "node scripts/validate-examples.mjs"
+  }
+}

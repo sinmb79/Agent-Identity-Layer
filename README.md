@@ -95,6 +95,22 @@ Rules for examples and docs in this repo:
 - do not present draft metadata as proof of truthfulness or legal identity
 - keep security claims modest and auditable
 
+## Local test
+
+You can test the current examples locally with:
+
+```bash
+node scripts/validate-examples.mjs
+```
+
+Or:
+
+```bash
+npm run validate:examples
+```
+
+This validates the example JSON envelopes against the minimum v0 rules described in the spec.
+
 ## Initial repo map
 
 - `docs/thesis-one-pager.md` — public framing and why this matters
