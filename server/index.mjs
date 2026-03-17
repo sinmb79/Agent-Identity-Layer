@@ -6,16 +6,28 @@ import { fileURLToPath } from "node:url";
 import { buildApp } from "./app.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const masterKeyPath = path.resolve(__dirname, "../data/master-key.json");
 
-if (!existsSync(masterKeyPath)) {
-  console.error(
-    "Master key not found. Run:\n\n  npm run setup:master-key\n"
-  );
-  process.exit(1);
+// Production: load master key from MASTER_KEY_JSON env var
+// Development: load from data/master-key.json file
+let masterKey;
+if (process.env.MASTER_KEY_JSON) {
+  try {
+    masterKey = JSON.parse(process.env.MASTER_KEY_JSON);
+  } catch {
+    console.error("MASTER_KEY_JSON is set but contains invalid JSON.");
+    process.exit(1);
+  }
+} else {
+  const masterKeyPath = path.resolve(__dirname, "../data/master-key.json");
+  if (!existsSync(masterKeyPath)) {
+    console.error(
+      "Master key not found. Run:\n\n  npm run setup:master-key\n\n" +
+      "In production, set the MASTER_KEY_JSON environment variable instead."
+    );
+    process.exit(1);
+  }
+  masterKey = JSON.parse(await readFile(masterKeyPath, "utf8"));
 }
-
-const masterKey = JSON.parse(await readFile(masterKeyPath, "utf8"));
 
 // Admin key: use env var or generate a random one for this session
 const adminKey =

@@ -37,8 +37,8 @@ console.log("=== AIL Registration Demo ===\n");
 // Step 1: Register owner
 console.log("1. Registering owner (boss@22blabs.ai)...");
 const ownerReg = await post("/owners/register", {
-  email: "boss@22blabs.ai",
-  org: "22b_labs",
+  email: "demo-owner@example.com",
+  org: "example_org",
 });
 console.log("   owner_key_id:", ownerReg.owner_key_id);
 console.log("   OTP (dev only):", ownerReg._dev_otp, "\n");

@@ -119,7 +119,7 @@ Required object defining what the agent is allowed to touch and how approvals ap
 
 ```json
 {
-  "workspace": ["C:\\Users\\sinmb\\.openclaw\\workspace"],
+  "workspace": ["/workspace/example"],
   "repos": ["Agent-Identity-Layer"],
   "network": "restricted",
   "secrets": "none",

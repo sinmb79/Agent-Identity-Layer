@@ -17,3 +17,19 @@ data/ail.db-wal
 # Environment
 .env
 .env.local
+
+# Claude Code local settings (machine-specific)
+.claude/
+
+# Internal project planning documents (not for public repo)
+AIL_Cowork_Briefing.docx
+
+# SDK sub-package artifacts
+sdk/js/node_modules/
+sdk/python/*.egg-info/
+sdk/python/build/
+sdk/python/dist/
+
+# OS generated
+.DS_Store
+Thumbs.db

@@ -8,6 +8,7 @@
     "node": ">=22.5.0"
   },
   "scripts": {
+    "start": "node server/index.mjs",
     "validate:examples": "node scripts/validate-examples.mjs",
     "demo": "npx http-server demo -p 4317 -c-1",
     "server": "node server/index.mjs",

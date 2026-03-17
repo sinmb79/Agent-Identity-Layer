@@ -26,7 +26,7 @@
   },
   "scope": {
     "workspace": [
-      "C:\\Users\\sinmb\\.openclaw\\workspace"
+      "/workspace/example"
     ],
     "repos": [
       "Agent-Identity-Layer"

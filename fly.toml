@@ -1,0 +1,50 @@
+# Fly.io deployment configuration for 22B Labs AIL Issuance Server
+# Deploy: fly deploy
+
+app = "22blabs-ail"
+primary_region = "nrt"   # Tokyo — change to your preferred region
+
+[build]
+
+[env]
+  PORT     = "8080"
+  HOST     = "0.0.0.0"
+  NODE_ENV = "production"
+
+# Database path points to the persistent volume
+[env]
+  AIL_DB_PATH = "/data/ail.db"
+
+[[services]]
+  protocol    = "tcp"
+  internal_port = 8080
+
+  [[services.ports]]
+    port     = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port     = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type       = "requests"
+    hard_limit = 200
+    soft_limit = 150
+
+  [[services.tcp_checks]]
+    interval    = "15s"
+    timeout     = "5s"
+    grace_period = "10s"
+
+  [[services.http_checks]]
+    interval    = "30s"
+    timeout     = "5s"
+    grace_period = "10s"
+    method      = "GET"
+    path        = "/health"
+
+# Persistent volume for SQLite database
+[[mounts]]
+  source      = "ail_data"
+  destination = "/data"

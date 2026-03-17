@@ -4,8 +4,12 @@ import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.resolve(__dirname, "../../data");
-const dbFile = path.join(dataDir, "ail.db");
+
+// Production: AIL_DB_PATH env var (e.g. /data/ail.db on a mounted volume)
+// Development: data/ail.db relative to project root
+const dbFile = process.env.AIL_DB_PATH
+  ?? path.resolve(__dirname, "../../data/ail.db");
+const dataDir = path.dirname(dbFile);
 
 let db;
 
