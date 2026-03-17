@@ -7,6 +7,7 @@ import {
   computeScopeHash,
   issueCredentialJWT,
 } from "../lib/crypto.mjs";
+import { generateIdCardSvg, generateNftMetadata } from "../lib/image-generator.mjs";
 
 export async function agentsRoutes(fastify, options) {
   const { masterKey } = options;
@@ -124,14 +125,32 @@ export async function agentsRoutes(fastify, options) {
       const issuedAtStr = issuedAt.toISOString();
       const expiresAtStr = expiresAt.toISOString();
 
-      // 5. Persist agent record
+      // 5. Generate NFT ID card SVG
+      const agentDataForImage = {
+        ail_id,
+        agent: {
+          display_name,
+          role,
+          provider,
+          model,
+          owner: { org: owner_org },
+        },
+        scope,
+        delegation: null,
+        verification: { signed: true, strength: "cryptographically_signed" },
+        credential: { issued_at: issuedAtStr },
+        owner: { org: owner_org },
+      };
+      const nft_image_svg = generateIdCardSvg(agentDataForImage);
+
+      // 6. Persist agent record
       db.prepare(
         `INSERT INTO agents
            (ail_id, display_name, role, provider, model,
             owner_key_id, owner_org, scope_json, scope_hash,
             signal_glyph_seed, behavior_fingerprint,
-            credential_token, issued_at, expires_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+            credential_token, issued_at, expires_at, nft_image_svg)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
       ).run(
         ail_id,
         display_name,
@@ -146,7 +165,8 @@ export async function agentsRoutes(fastify, options) {
         behavior_fingerprint.hash,
         token,
         issuedAtStr,
-        expiresAtStr
+        expiresAtStr,
+        nft_image_svg
       );
 
       fastify.log.info(`Registered agent ${ail_id} (${display_name}) for owner ${owner_key_id}`);
@@ -163,6 +183,8 @@ export async function agentsRoutes(fastify, options) {
         },
         signal_glyph,
         behavior_fingerprint,
+        nft_image_url: `/agents/${ail_id}/image`,
+        nft_metadata_url: `/agents/${ail_id}/metadata`,
       });
     }
   );
@@ -240,6 +262,135 @@ export async function agentsRoutes(fastify, options) {
       fastify.log.info(`Revoked agent ${ail_id}`);
 
       return reply.send({ revoked: true, ail_id });
+    }
+  );
+
+  /**
+   * GET /agents/:ail_id/image
+   *
+   * Returns the agent's NFT identity card as an SVG image.
+   * If the stored SVG is missing (legacy records), regenerates on the fly.
+   */
+  fastify.get(
+    "/agents/:ail_id/image",
+    {
+      schema: {
+        params: {
+          type: "object",
+          required: ["ail_id"],
+          properties: { ail_id: { type: "string" } },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { ail_id } = request.params;
+      const db = getDb();
+
+      const agent = db
+        .prepare(
+          `SELECT ail_id, display_name, role, provider, model,
+                  owner_org, scope_json, issued_at, nft_image_svg
+           FROM agents WHERE ail_id = ?`
+        )
+        .get(ail_id);
+
+      if (!agent) {
+        return reply.code(404).send({ error: "agent_not_found" });
+      }
+
+      let svg = agent.nft_image_svg;
+
+      if (!svg) {
+        // Regenerate for legacy records that predate the image column
+        const scope = JSON.parse(agent.scope_json);
+        const agentDataForImage = {
+          ail_id: agent.ail_id,
+          agent: {
+            display_name: agent.display_name,
+            role: agent.role,
+            provider: agent.provider,
+            model: agent.model,
+            owner: { org: agent.owner_org },
+          },
+          scope,
+          delegation: null,
+          verification: { signed: true, strength: "cryptographically_signed" },
+          credential: { issued_at: agent.issued_at },
+          owner: { org: agent.owner_org },
+        };
+        svg = generateIdCardSvg(agentDataForImage);
+        // Cache it
+        db.prepare("UPDATE agents SET nft_image_svg = ? WHERE ail_id = ?").run(svg, ail_id);
+      }
+
+      return reply
+        .header("Content-Type", "image/svg+xml")
+        .header("Cache-Control", "public, max-age=31536000, immutable")
+        .send(svg);
+    }
+  );
+
+  /**
+   * GET /agents/:ail_id/metadata
+   *
+   * Returns ERC-721 compatible JSON metadata for the agent NFT.
+   * The `image` field is a base64-encoded SVG data URI suitable for on-chain storage.
+   */
+  fastify.get(
+    "/agents/:ail_id/metadata",
+    {
+      schema: {
+        params: {
+          type: "object",
+          required: ["ail_id"],
+          properties: { ail_id: { type: "string" } },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { ail_id } = request.params;
+      const db = getDb();
+
+      const agent = db
+        .prepare(
+          `SELECT ail_id, display_name, role, provider, model,
+                  owner_org, scope_json, issued_at, nft_image_svg
+           FROM agents WHERE ail_id = ?`
+        )
+        .get(ail_id);
+
+      if (!agent) {
+        return reply.code(404).send({ error: "agent_not_found" });
+      }
+
+      const scope = JSON.parse(agent.scope_json);
+      const agentDataForImage = {
+        ail_id: agent.ail_id,
+        agent: {
+          display_name: agent.display_name,
+          role: agent.role,
+          provider: agent.provider,
+          model: agent.model,
+          owner: { org: agent.owner_org },
+        },
+        scope,
+        delegation: null,
+        verification: { signed: true, strength: "cryptographically_signed" },
+        credential: { issued_at: agent.issued_at },
+        owner: { org: agent.owner_org },
+      };
+
+      // Use stored SVG if available, otherwise regenerate
+      if (agent.nft_image_svg) {
+        agentDataForImage._cached_svg = agent.nft_image_svg;
+      }
+
+      const metadata = generateNftMetadata(agentDataForImage);
+
+      return reply
+        .header("Content-Type", "application/json")
+        .header("Cache-Control", "public, max-age=31536000, immutable")
+        .send(metadata);
     }
   );
 }

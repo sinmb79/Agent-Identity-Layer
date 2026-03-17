@@ -59,7 +59,8 @@ function initSchema(db) {
       issued_at            TEXT NOT NULL,
       expires_at           TEXT NOT NULL,
       revoked              INTEGER NOT NULL DEFAULT 0,
-      revoked_at           TEXT
+      revoked_at           TEXT,
+      nft_image_svg        TEXT
     );
 
     CREATE TABLE IF NOT EXISTS ail_sequence (
@@ -67,4 +68,11 @@ function initSchema(db) {
       next_seq INTEGER NOT NULL DEFAULT 1
     );
   `);
+
+  // Migration: add nft_image_svg column to existing databases
+  try {
+    db.exec("ALTER TABLE agents ADD COLUMN nft_image_svg TEXT");
+  } catch {
+    // Column already exists — safe to ignore
+  }
 }
