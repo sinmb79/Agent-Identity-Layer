@@ -1,0 +1,88 @@
+{
+  "_comment": "Example: ClaudeCoder registered with 22B Labs. credential.token is a structural placeholder — not a real signature.",
+  "version": "ail.v1",
+  "ail_id": "AIL-2026-00001",
+  "credential": {
+    "type": "AIL.SignedCredential.v1",
+    "issuer": "22blabs.ai",
+    "issuer_key_id": "22blabs-master-2026",
+    "issued_at": "2026-03-17T00:00:00Z",
+    "expires_at": "2027-03-17T00:00:00Z",
+    "token": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjIyYmxhYnMtbWFzdGVyLTIwMjYifQ.eyJpc3MiOiIyMmJsYWJzLmFpIiwic3ViIjoiQUlMLTIwMjYtMDAwMDEiLCJpYXQiOjE3NDIxNjk2MDAsImV4cCI6MTc3MzcwNTYwMCwiYWlsX2lkIjoiQUlMLTIwMjYtMDAwMDEiLCJkaXNwbGF5X25hbWUiOiJDbGF1ZGVDb2RlciIsInJvbGUiOiJyZXZpZXdfZW5naW5lZXIiLCJvd25lcl9rZXlfaWQiOiJvd2tfMjJibGFic19leGFtcGxlXzAwMSIsIm93bmVyX29yZyI6IjIyYl9sYWJzIiwic2NvcGVfaGFzaCI6InNoYTI1NjpleGFtcGxlLXNjb3BlLWhhc2giLCJzaWduYWxfZ2x5cGhfc2VlZCI6IkFJTC0yMDI2LTAwMDAxOkNsYXVkZUNvZGVyOm93a18yMmJsYWJzX2V4YW1wbGVfMDAxIiwiYmVoYXZpb3JfZmluZ2VycHJpbnQiOiJzaGEyNTY6ZXhhbXBsZS1iZWhhdmlvci1oYXNoIn0.EXAMPLE-SIGNATURE-PLACEHOLDER"
+  },
+  "agent": {
+    "id": "agent_claudecoder_01",
+    "display_name": "ClaudeCoder",
+    "role": "review_engineer",
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-6",
+    "runtime": "claude_code"
+  },
+  "owner": {
+    "key_id": "owk_22blabs_example_001",
+    "org": "22b_labs",
+    "email_hash": "sha256:example-hash-of-owner-email"
+  },
+  "scope": {
+    "workspace": [
+      "/workspace/example"
+    ],
+    "repos": [
+      "Agent-Identity-Layer"
+    ],
+    "network": "none",
+    "secrets": "none",
+    "write_access": false,
+    "approval_policy": {
+      "irreversible_actions": "not_allowed",
+      "external_posting": "not_allowed",
+      "destructive_file_ops": "human_required"
+    }
+  },
+  "signal_glyph": {
+    "seed": "AIL-2026-00001:ClaudeCoder:owk_22blabs_example_001",
+    "algorithm": "sha256-visual-v1",
+    "version": "glyph.v1"
+  },
+  "behavior_fingerprint": {
+    "hash": "sha256:example-behavior-hash",
+    "algorithm": "sha256",
+    "inputs": ["role", "scope.network", "scope.secrets", "scope.write_access", "provider"]
+  },
+  "delegation": {
+    "mode": "delegated",
+    "delegated_by": {
+      "agent_id": "agent_cto_01",
+      "run_id": "run_cto_20260317_0900"
+    },
+    "approved_by": {
+      "type": "human",
+      "id": "boss"
+    },
+    "chain_depth": 1,
+    "task_ref": "issue:AIL-Phase1"
+  },
+  "runtime": {
+    "session_id": "sess_20260317_review",
+    "run_id": "run_claudecoder_20260317_0900",
+    "surface": "cli",
+    "host": "local-host-example",
+    "cwd": "/workspace/agent-identity-layer",
+    "time": "2026-03-17T09:00:00+09:00"
+  },
+  "verification": {
+    "strength": "cryptographically_signed",
+    "issuer": "22blabs.ai",
+    "issuer_key_id": "22blabs-master-2026",
+    "token_type": "JWT",
+    "signed": true,
+    "verify_url": "https://22blabs.ai/api/verify",
+    "evidence": [
+      "22blabs_registry",
+      "owner_key_delegation",
+      "jwt_signature"
+    ],
+    "attestation_ref": "ail_id:AIL-2026-00001"
+  },
+  "extensions": {}
+}

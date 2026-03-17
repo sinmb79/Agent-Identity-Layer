@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>22B Labs · AIL Admin Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #161b25;
+      --border: #1e2535;
+      --accent: #4f8ef7;
+      --accent-dim: #2a4a8a;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #eab308;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --font: "Inter", system-ui, sans-serif;
+      --mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: var(--font);
+           font-size: 14px; line-height: 1.6; }
+
+    /* ---- Auth overlay ---- */
+    #auth-overlay {
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; align-items: center; justify-content: center; z-index: 100;
+    }
+    .auth-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 40px; width: 360px; text-align: center;
+    }
+    .auth-box h2 { font-size: 18px; margin-bottom: 8px; }
+    .auth-box p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+    .auth-box input {
+      width: 100%; padding: 10px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: var(--mono); font-size: 13px; margin-bottom: 12px;
+    }
+    .auth-box input:focus { outline: none; border-color: var(--accent); }
+    .btn {
+      padding: 10px 20px; background: var(--accent); color: #fff;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 14px;
+      font-weight: 500; width: 100%; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn.danger { background: var(--red); }
+    .btn.sm { padding: 5px 12px; font-size: 12px; width: auto; }
+    #auth-error { color: var(--red); font-size: 12px; margin-top: 8px; }
+
+    /* ---- Layout ---- */
+    #app { display: none; }
+    header {
+      border-bottom: 1px solid var(--border); padding: 16px 32px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .logo { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo span { color: var(--accent); }
+    .server-url { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+    .refresh-btn {
+      margin-left: auto; padding: 6px 14px; background: transparent;
+      border: 1px solid var(--border); border-radius: 6px; color: var(--text);
+      cursor: pointer; font-size: 13px; transition: border-color 0.15s;
+    }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+    /* ---- Stats ---- */
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+    }
+    .stat-label { color: var(--muted); font-size: 12px; text-transform: uppercase;
+                  letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-value { font-size: 32px; font-weight: 700; font-family: var(--mono); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red { color: var(--red); }
+    .stat-value.blue { color: var(--accent); }
+
+    /* ---- Tabs ---- */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .tab {
+      padding: 8px 20px; cursor: pointer; border-bottom: 2px solid transparent;
+      color: var(--muted); font-size: 14px; transition: color 0.15s;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* ---- Tables ---- */
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: var(--surface); padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--muted); border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface); }
+    td { padding: 12px 16px; font-size: 13px; vertical-align: middle; }
+
+    .mono { font-family: var(--mono); font-size: 12px; }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+    }
+    .badge.active { background: #052e16; color: var(--green); }
+    .badge.revoked { background: #1f0a0a; color: var(--red); }
+    .badge.verified { background: #052e16; color: var(--green); }
+    .badge.pending { background: #1c1005; color: var(--yellow); }
+
+    /* ---- JWKS panel ---- */
+    .jwks-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 24px;
+    }
+    .jwks-box h3 { margin-bottom: 16px; font-size: 15px; }
+    pre {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 16px; font-family: var(--mono); font-size: 12px;
+      white-space: pre-wrap; color: #a5c3ff; overflow-x: auto;
+    }
+
+    /* ---- Empty state ---- */
+    .empty { text-align: center; padding: 48px; color: var(--muted); }
+    .empty h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+  </style>
+</head>
+<body>
+
+<!-- Auth overlay -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <h2>AIL Admin Dashboard</h2>
+    <p>Enter your admin API key to continue.</p>
+    <input type="password" id="api-key-input" placeholder="X-Admin-Key" autocomplete="off">
+    <input type="text" id="server-url-input" placeholder="Server URL (default: http://127.0.0.1:3317)" autocomplete="off">
+    <br>
+    <button class="btn" onclick="login()">Connect</button>
+    <div id="auth-error"></div>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <header>
+    <div class="logo">22B<span>Labs</span> · AIL</div>
+    <div class="server-url" id="server-url-display"></div>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+  </header>
+
+  <main>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total Agents</div>
+        <div class="stat-value blue" id="stat-total">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active</div>
+        <div class="stat-value green" id="stat-active">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Revoked</div>
+        <div class="stat-value red" id="stat-revoked">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Verified Owners</div>
+        <div class="stat-value" id="stat-owners">—</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('agents', this)">Agents</div>
+      <div class="tab" onclick="switchTab('owners', this)">Owners</div>
+      <div class="tab" onclick="switchTab('keys', this)">Public Keys</div>
+    </div>
+
+    <!-- Agents -->
+    <div id="panel-agents" class="panel active">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>AIL ID</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Provider</th>
+              <th>Owner</th>
+              <th>Issued</th>
+              <th>Expires</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="agents-tbody">
+            <tr><td colspan="9" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Owners -->
+    <div id="panel-owners" class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Key ID</th>
+              <th>Email</th>
+              <th>Org</th>
+              <th>Status</th>
+              <th>Registered</th>
+            </tr>
+          </thead>
+          <tbody id="owners-tbody">
+            <tr><td colspan="5" class="empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Public Keys -->
+    <div id="panel-keys" class="panel">
+      <div class="jwks-box">
+        <h3>22B Labs Public Key (JWKS)</h3>
+        <pre id="jwks-pre">Loading...</pre>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  let apiKey = '';
+  let serverUrl = 'http://127.0.0.1:3317';
+
+  async function login() {
+    apiKey = document.getElementById('api-key-input').value.trim();
+    const urlInput = document.getElementById('server-url-input').value.trim();
+    if (urlInput) serverUrl = urlInput.replace(/\/$/, '');
+
+    try {
+      const res = await fetch(`${serverUrl}/admin/stats`, {
+        headers: { 'X-Admin-Key': apiKey }
+      });
+      if (res.status === 401) throw new Error('Invalid admin key.');
+      if (!res.ok) throw new Error(`Server error: ${res.status}`);
+
+      document.getElementById('auth-overlay').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('server-url-display').textContent = serverUrl;
+      loadAll();
+    } catch (e) {
+      document.getElementById('auth-error').textContent = e.message;
+    }
+  }
+
+  async function apiFetch(path) {
+    const res = await fetch(`${serverUrl}${path}`, { headers: { 'X-Admin-Key': apiKey } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  async function loadAll() {
+    loadStats();
+    loadAgents();
+    loadOwners();
+    loadKeys();
+  }
+
+  async function loadStats() {
+    try {
+      const s = await apiFetch('/admin/stats');
+      document.getElementById('stat-total').textContent = s.total_agents;
+      document.getElementById('stat-active').textContent = s.active_agents;
+      document.getElementById('stat-revoked').textContent = s.revoked_agents;
+      document.getElementById('stat-owners').textContent = s.verified_owners;
+    } catch {}
+  }
+
+  async function loadAgents() {
+    const tbody = document.getElementById('agents-tbody');
+    try {
+      const { agents } = await apiFetch('/admin/agents');
+      if (!agents.length) {
+        tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><h3>No agents registered yet</h3></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = agents.map(a => `
+        <tr>
+          <td class="mono">${a.ail_id}</td>
+          <td><strong>${esc(a.display_name)}</strong></td>
+          <td class="mono">${esc(a.role)}</td>
+          <td>${esc(a.provider ?? '—')}</td>
+          <td class="mono" style="font-size:11px">${esc(a.owner_key_id.slice(0,20))}…</td>
+          <td style="color:var(--muted)">${fmtDate(a.issued_at)}</td>
+          <td style="color:var(--muted)">${fmtDate(a.expires_at)}</td>
+          <td><span class="badge ${a.revoked ? 'revoked' : 'active'}">${a.revoked ? 'revoked' : 'active'}</span></td>
+          <td>${a.revoked ? '' : `<button class="btn danger sm" onclick="revokeAgent('${a.ail_id}', this)">Revoke</button>`}</td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="9" style="color:var(--red);padding:16px">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadOwners() {
+    const tbody = document.getElementById('owners-tbody');
+    try {
+      const { owners } = await apiFetch('/admin/owners');
+      if (!owners.length) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><h3>No owners registered yet</h3></div></td></tr>';
+        return;
+      }
+      tbody.innerHTML = owners.map(o => `
+        <tr>
+          <td class="mono" style="font-size:11px">${esc(o.id)}</td>
+          <td>${esc(o.email)}</td>
+          <td>${esc(o.org ?? '—')}</td>
+          <td><span class="badge ${o.email_verified ? 'verified' : 'pending'}">${o.email_verified ? 'verified' : 'pending'}</span></td>
+          <td style="color:var(--muted)">${fmtDate(o.created_at)}</td>
+        </tr>
+      `).join('');
+    } catch (e) {
+      tbody.innerHTML = `<tr><td colspan="5" style="color:var(--red);padding:16px">Error: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function loadKeys() {
+    try {
+      const jwks = await fetch(`${serverUrl}/keys`).then(r => r.json());
+      document.getElementById('jwks-pre').textContent = JSON.stringify(jwks, null, 2);
+    } catch (e) {
+      document.getElementById('jwks-pre').textContent = 'Error: ' + e.message;
+    }
+  }
+
+  async function revokeAgent(ailId, btn) {
+    if (!confirm(`Revoke ${ailId}? This cannot be undone.`)) return;
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      await fetch(`${serverUrl}/admin/agents/${ailId}/revoke`, {
+        method: 'DELETE',
+        headers: { 'X-Admin-Key': apiKey }
+      });
+      loadAll();
+    } catch (e) {
+      alert('Revoke failed: ' + e.message);
+      btn.disabled = false;
+      btn.textContent = 'Revoke';
+    }
+  }
+
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById(`panel-${name}`).classList.add('active');
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
+  }
+
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  document.getElementById('api-key-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+</script>
+</body>
+</html>

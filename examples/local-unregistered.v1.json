@@ -1,0 +1,64 @@
+{
+  "_comment": "Example: local agent running without a 22B Labs registration. v1 structure, unregistered fields set to null.",
+  "version": "ail.v1",
+  "ail_id": null,
+  "credential": null,
+  "agent": {
+    "id": "agent_local_assistant_01",
+    "display_name": "LocalAssistant",
+    "role": "operations_assistant",
+    "provider": "openai",
+    "model": "gpt-4o",
+    "runtime": "custom_harness"
+  },
+  "owner": null,
+  "scope": {
+    "workspace": [
+      "/workspace/example"
+    ],
+    "repos": [],
+    "network": "restricted",
+    "secrets": "indirect",
+    "write_access": true,
+    "approval_policy": {
+      "irreversible_actions": "human_required",
+      "external_posting": "human_required",
+      "destructive_file_ops": "human_required"
+    }
+  },
+  "signal_glyph": null,
+  "behavior_fingerprint": null,
+  "delegation": {
+    "mode": "direct",
+    "delegated_by": null,
+    "approved_by": {
+      "type": "human",
+      "id": "operator_example"
+    },
+    "chain_depth": 0,
+    "task_ref": "chat:direct-session-example"
+  },
+  "runtime": {
+    "session_id": "sess_local_example_001",
+    "run_id": "run_local_assistant_20260317_0800",
+    "surface": "chat",
+    "host": "local-host-example",
+    "cwd": "/workspace/example",
+    "time": "2026-03-17T08:00:00+09:00"
+  },
+  "verification": {
+    "strength": "local_runtime_asserted",
+    "signed": false,
+    "evidence": [
+      "runtime_session_binding",
+      "workspace_path_match"
+    ],
+    "attestation_ref": null
+  },
+  "extensions": {
+    "example_runtime": {
+      "channel": "direct",
+      "chat_type": "private"
+    }
+  }
+}

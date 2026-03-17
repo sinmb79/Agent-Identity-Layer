@@ -1,0 +1,18 @@
+{
+  "name": "@22blabs/ail-sdk",
+  "version": "0.1.0",
+  "description": "JavaScript SDK for 22B Labs Agent Identity Layer — credential issuance, verification, and envelope assembly.",
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["agent-identity", "22blabs", "ail", "credential", "jwt"],
+  "license": "MIT",
+  "dependencies": {
+    "jose": "^5.2.3"
+  }
+}

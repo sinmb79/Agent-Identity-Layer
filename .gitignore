@@ -1,0 +1,19 @@
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+
+# 22B Labs master signing key and runtime database — never commit
+data/master-key.json
+data/ail.db
+data/ail.db-shm
+data/ail.db-wal
+
+# Keep the data directory tracked but empty
+!data/.gitkeep
+
+# Environment
+.env
+.env.local

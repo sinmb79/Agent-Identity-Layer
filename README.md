@@ -25,6 +25,25 @@ Agent Identity Layer is an open-source proposal for how software agents can pres
 
 The goal is not to create a global identity monopoly or a heavy compliance framework. The goal is to make agent behavior more legible, safer to integrate, and easier to audit across tools, teams, and platforms.
 
+## The AI ID card concept
+
+Think of it as a **resident registration card (주민등록증) for AI agents**.
+
+A resident registration card answers five questions at a glance: who are you, who are your guardians, where do you live, when were you born, and is this document genuine. Agent Identity Layer answers the same five questions for AI agents:
+
+| ID card field | AIL equivalent |
+|--------------|----------------|
+| Registration number | `ail_id` — e.g., `AIL-2026-00001` |
+| Name | `agent.display_name` |
+| Address (owner) | `owner.org` + `owner.key_id` |
+| Photo | `signal_glyph` — deterministic visual identity |
+| Fingerprint | `behavior_fingerprint` — hash of declared capabilities |
+| Government stamp | 22B Labs JWT signature |
+
+Like a government ID, the card is issued by a trusted registry (22B Labs), not self-printed by the holder. An agent cannot register itself — the owner must sign the registration request with their private key, ensuring every credential traces back to a responsible human or organization.
+
+**v1 adds the signed credential layer.** v0 was documentation-first, self-asserted metadata useful before any cryptographic hardening. v1 introduces the issuance model: owner keypair delegation → 22B Labs signs a JWT → third parties can verify independently.
+
 ## Problem
 
 Today, agents often act with unclear provenance:
@@ -131,15 +150,16 @@ This is how the current local signal-glyph demo looks when running on a machine:
 
 ![Agent Identity Signal Glyph demo](docs/images/signal-glyph-demo.jpg)
 
-## Initial repo map
+## Repo map
 
+- `spec/agent-identity-envelope.v0.md` — v0 envelope draft (self-asserted, no signature)
+- `spec/agent-identity-envelope.v1.md` — v1 envelope draft (JWT signed credential)
+- `examples/` — example identity envelopes (v0 and v1)
+- `docs/owner-attribution.md` — owner keypair delegation and accountability design
+- `docs/threat-model.md` — key trust assumptions and failure modes
 - `docs/thesis-one-pager.md` — public framing and why this matters
 - `docs/mvp-scope.md` — what to build first, and what to defer
-- `docs/repo-structure.md` — suggested repo layout as the project grows
-- `docs/publish-checklist.md` — minimum bar before public launch
-- `docs/threat-model.md` — key trust assumptions and failure modes
-- `spec/agent-identity-envelope.v0.md` — first envelope draft
-- `examples/` — example identity envelopes for common cases
+- `demo/` — signal glyph visual identity demo
 
 ## Category fit
 
@@ -147,7 +167,7 @@ This project sits in the emerging **Agent Identity Layer** category: the layer b
 
 ## Status
 
-Early public draft. Positioning-first, but now grounded by a first envelope draft, examples, a threat model, and contribution/license basics.
+Phase 1 in progress. v0 spec and examples are published. v1 (signed credential) spec is drafted. The issuance system (Phase 2) and verification API (Phase 3) are next.
 
 ## Contributing
 

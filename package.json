@@ -1,10 +1,22 @@
 {
   "name": "agent-identity-layer",
   "private": true,
-  "version": "0.0.0",
-  "description": "Documentation-first repo with local validation utilities for Agent Identity Layer examples.",
+  "version": "0.1.0",
+  "description": "Agent identity credential spec and issuance server for 22B Labs Agent Identity Layer.",
   "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "scripts": {
-    "validate:examples": "node scripts/validate-examples.mjs"
+    "validate:examples": "node scripts/validate-examples.mjs",
+    "demo": "npx http-server demo -p 4317 -c-1",
+    "server": "node server/index.mjs",
+    "setup:master-key": "node scripts/generate-master-key.mjs",
+    "demo:register": "node scripts/demo-register.mjs"
+  },
+  "dependencies": {
+    "@fastify/cors": "^9.0.1",
+    "fastify": "^4.26.2",
+    "jose": "^5.2.3"
   }
 }
