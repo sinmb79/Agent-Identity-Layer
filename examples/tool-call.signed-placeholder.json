@@ -44,8 +44,8 @@
     "session_id": "review-session-20260317",
     "run_id": "run_claudecoder_20260317_0815",
     "surface": "cli",
-    "host": "22B",
-    "cwd": "C:\\Users\\sinmb\\paperclip",
+    "host": "review-host-example",
+    "cwd": "/workspace/tools/paperclip",
     "time": "2026-03-17T08:15:00+09:00"
   },
   "verification": {

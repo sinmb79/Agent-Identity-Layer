@@ -72,7 +72,7 @@ This repository is documentation-first and is intentionally written to avoid exp
 
 Rules for examples and docs in this repo:
 
-- use placeholder IDs and synthetic metadata only
+- use placeholder IDs, synthetic metadata, and generic example paths only
 - do not include secrets, tokens, credentials, private keys, or auth files
 - do not include private user data or personally identifying information
 - do not present draft metadata as proof of truthfulness or legal identity

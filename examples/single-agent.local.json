@@ -39,8 +39,8 @@
     "session_id": "agent:main:telegram:direct:226731503",
     "run_id": "run_main_20260317_0805",
     "surface": "telegram",
-    "host": "22B",
-    "cwd": "C:\\Users\\sinmb\\.openclaw\\workspace",
+    "host": "local-host-example",
+    "cwd": "/workspace/example",
     "time": "2026-03-17T08:05:00+09:00"
   },
   "verification": {
@@ -58,4 +58,5 @@
       "chat_type": "direct"
     }
   }
+}
 }

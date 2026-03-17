@@ -150,8 +150,8 @@ Required object describing the execution environment.
   "session_id": "sess_20260317_main",
   "run_id": "run_codexcoder_20260317_0805",
   "surface": "telegram",
-  "host": "22B",
-  "cwd": "C:\\Users\\sinmb\\.openclaw\\workspace",
+  "host": "local-host-example",
+  "cwd": "/workspace/example",
   "time": "2026-03-17T08:05:00+09:00"
 }
 ```

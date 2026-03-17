@@ -44,8 +44,8 @@
     "session_id": "paperclip-company-22b-labs",
     "run_id": "run_codexcoder_20260317_0810",
     "surface": "local_control_plane",
-    "host": "22B",
-    "cwd": "C:\\Users\\sinmb\\.openclaw\\workspace\\Agent-Identity-Layer",
+    "host": "control-plane-example",
+    "cwd": "/workspace/company/agent-identity-layer",
     "time": "2026-03-17T08:10:00+09:00"
   },
   "verification": {

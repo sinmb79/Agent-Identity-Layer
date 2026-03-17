@@ -31,7 +31,7 @@
 - [ ] no copied proprietary spec text
 - [ ] no vendor trademarks used in misleading ways
 - [ ] no privacy-invasive example payloads
-- [ ] examples use placeholder IDs and synthetic metadata
+- [ ] examples use placeholder IDs, synthetic metadata, and generic non-personal paths
 - [ ] disclaimers avoid giving security guarantees the project does not provide
 
 ## Nice-to-have before announcing
