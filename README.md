@@ -2,6 +2,23 @@
 
 A public, implementation-ready thesis for a lightweight identity and trust layer for AI agents.
 
+## About 22B Labs
+
+This project is created by **22B Labs**.
+
+It is the **first public project** developed under the 22B Labs operating structure.
+
+### Project team roles
+
+- **CEO** — strategy, prioritization, executive synthesis
+- **CTO** — technical direction and architecture
+- **CMO** — market research and positioning
+- **CodexCoder** — implementation and automation
+- **ClaudeCoder** — review, documentation, critique
+- **GeminiResearcher** — comparative research and exploration
+
+These are project operating roles, not claims of legal identity, employment status, or authority outside this project.
+
 ## What this is
 
 Agent Identity Layer is an open-source proposal for how software agents can present **who they are, what they are allowed to do, what context they are operating in, and how humans or systems should verify that**.
