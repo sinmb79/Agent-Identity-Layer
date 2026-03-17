@@ -24,6 +24,12 @@ data/ail.db-wal
 # Internal project planning documents (not for public repo)
 AIL_Cowork_Briefing.docx
 
+# NFT contract artifacts and sensitive files
+nft/.env
+nft/artifacts/
+nft/cache/
+nft/deployments.json
+
 # SDK sub-package artifacts
 sdk/js/node_modules/
 sdk/python/*.egg-info/
