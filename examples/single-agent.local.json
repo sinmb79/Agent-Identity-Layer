@@ -8,7 +8,7 @@
     "runtime": "openclaw",
     "owner": {
       "type": "workspace",
-      "id": "22b_openclaw_main"
+      "id": "workspace_main_example"
     }
   },
   "delegation": {
@@ -16,14 +16,14 @@
     "delegated_by": null,
     "approved_by": {
       "type": "human",
-      "id": "boss"
+      "id": "operator_example"
     },
     "chain_depth": 0,
-    "task_ref": "chat:telegram:226731503"
+    "task_ref": "chat:direct-session-example"
   },
   "scope": {
     "workspace": [
-      "C:\\Users\\sinmb\\.openclaw\\workspace"
+      "/workspace/example"
     ],
     "repos": [],
     "network": "restricted",
@@ -36,9 +36,9 @@
     }
   },
   "runtime": {
-    "session_id": "agent:main:telegram:direct:226731503",
-    "run_id": "run_main_20260317_0805",
-    "surface": "telegram",
+    "session_id": "agent:main:direct:example-session",
+    "run_id": "run_main_example_20260317_0805",
+    "surface": "chat",
     "host": "local-host-example",
     "cwd": "/workspace/example",
     "time": "2026-03-17T08:05:00+09:00"
@@ -53,12 +53,9 @@
     "attestation_ref": null
   },
   "extensions": {
-    "openclaw": {
-      "channel": "telegram",
-      "chat_type": "direct"
+    "example_runtime": {
+      "channel": "direct",
+      "chat_type": "private"
     }
   }
-}
-}
-}
 }
