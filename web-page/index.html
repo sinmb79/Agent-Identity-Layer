@@ -4,7 +4,17 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="description" content="AI 에이전트를 위한 공식 신분증. 22B Labs가 서명한 신원 크리덴셜과 NFT ID 카드를 즉시 발급합니다."/>
-<title>22B Labs · Agent Identity Layer</title>
+<title>Agent ID Card · AI Agent Identity Layer</title>
+<!-- OG / Social -->
+<meta property="og:type"        content="website"/>
+<meta property="og:url"         content="https://agentidcard.org"/>
+<meta property="og:title"       content="Agent ID Card — AI 에이전트의 공식 신분증"/>
+<meta property="og:description" content="에이전트가 누구인지, 누가 소유하는지, 무엇을 할 수 있는지. JWT 크리덴셜과 NFT ID 카드를 즉시 발급합니다."/>
+<meta property="og:image"       content="https://agentidcard.org/og-image.png"/>
+<meta name="twitter:card"       content="summary_large_image"/>
+<meta name="twitter:title"      content="Agent ID Card — AI 에이전트의 공식 신분증"/>
+<meta name="twitter:description" content="에이전트가 누구인지, 누가 소유하는지, 무엇을 할 수 있는지. JWT 크리덴셜과 NFT ID 카드를 즉시 발급합니다."/>
+<link rel="canonical"           href="https://agentidcard.org"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -80,7 +90,7 @@
 
   /* FAQ accordion */
   .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease; }
-  .faq-answer.open { max-height: 200px; }
+  .faq-answer.open { max-height: 500px; }
   .faq-icon { transition: transform 0.3s ease; }
   .faq-item.open .faq-icon { transform: rotate(180deg); }
 
@@ -133,7 +143,7 @@
       <a href="#solution" class="hover:text-white transition-colors">Docs</a>
       <a href="#pricing"  class="hover:text-white transition-colors">Pricing</a>
       <a href="#verify"   class="hover:text-white transition-colors">Verify</a>
-      <a href="#"         class="hover:text-white transition-colors">Dashboard</a>
+      <a href="https://22blabs-ail.fly.dev/dashboard" target="_blank" class="hover:text-white transition-colors">Dashboard</a>
     </div>
 
     <!-- CTA -->
@@ -142,7 +152,7 @@
               class="hidden md:block text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors border border-slate-700 px-2 py-1 rounded">
         EN
       </button>
-      <a href="#" class="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20">
+      <a href="https://22blabs-ail.fly.dev/dashboard" target="_blank" class="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20">
         Get Started
       </a>
     </div>
@@ -175,7 +185,7 @@
       </p>
 
       <div class="flex flex-wrap gap-3">
-        <a href="#" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-primary/25 flex items-center gap-2">
+        <a href="https://22blabs-ail.fly.dev/dashboard" target="_blank" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-primary/25 flex items-center gap-2">
           <span class="material-symbols-outlined text-base">add_circle</span>
           <span data-ko="에이전트 등록하기" data-en="Register Agent">에이전트 등록하기</span>
         </a>
@@ -364,7 +374,7 @@
             <span class="ml-3 text-slate-600 text-xs">terminal</span>
           </div>
           <div class="p-5 overflow-x-auto">
-<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-300">/owners/register</span>
+<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-500">https://22blabs-ail.fly.dev</span><span class="text-slate-300">/owners/register</span>
 <span class="text-slate-600">{</span>
   <span class="text-blue-300">"email"</span><span class="text-slate-500">:</span> <span class="text-green-400">"you@company.com"</span><span class="text-slate-600">,</span>
   <span class="text-blue-300">"org"</span><span class="text-slate-500">:</span>   <span class="text-green-400">"your_org"</span>
@@ -398,7 +408,7 @@
             <span class="ml-3 text-slate-600 text-xs">terminal</span>
           </div>
           <div class="p-5 overflow-x-auto">
-<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-300">/agents/register</span>
+<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-500">https://22blabs-ail.fly.dev</span><span class="text-slate-300">/agents/register</span>
 <span class="text-slate-600">{</span>
   <span class="text-blue-300">"owner_key_id"</span><span class="text-slate-500">:</span> <span class="text-green-400">"owk_c8fb..."</span><span class="text-slate-600">,</span>
   <span class="text-blue-300">"payload"</span><span class="text-slate-500">:</span> <span class="text-slate-600">{</span>
@@ -437,7 +447,7 @@
     <span class="text-blue-300">"token"</span><span class="text-slate-500">:</span>       <span class="text-green-400">"eyJhbGci..."</span><span class="text-slate-600">,</span>
     <span class="text-blue-300">"expires_at"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"2027-03-17"</span>
   <span class="text-slate-600">},</span>
-  <span class="text-blue-300">"nft_image_url"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"/agents/AIL-2026-00001/image"</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"nft_image_url"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"https://22blabs-ail.fly.dev/agents/AIL-2026-00001/image"</span><span class="text-slate-600">,</span>
   <span class="text-blue-300">"signal_glyph"</span><span class="text-slate-500">:</span>   <span class="text-slate-400">{ "seed": "AIL-2026-00001:..." }</span>
 <span class="text-slate-600">}</span></pre>
           </div>
@@ -857,8 +867,8 @@ r = <span class="text-primary">verify_offline</span>(token, public_key_jwk)</pre
         <ul class="text-sm text-slate-500 space-y-2.5">
           <li><a class="hover:text-primary transition-colors" href="#solution" data-ko="문서" data-en="Docs">문서</a></li>
           <li><a class="hover:text-primary transition-colors" href="#pricing" data-ko="가격" data-en="Pricing">가격</a></li>
-          <li><a class="hover:text-primary transition-colors" href="#" data-ko="대시보드" data-en="Dashboard">대시보드</a></li>
-          <li><a class="hover:text-primary transition-colors" href="#">SDK</a></li>
+          <li><a class="hover:text-primary transition-colors" href="https://22blabs-ail.fly.dev/dashboard" target="_blank" data-ko="대시보드" data-en="Dashboard">대시보드</a></li>
+          <li><a class="hover:text-primary transition-colors" href="https://github.com/sinmb79/Agent-Identity-Layer/tree/main/sdk">SDK</a></li>
         </ul>
       </div>
       <div>
@@ -866,7 +876,7 @@ r = <span class="text-primary">verify_offline</span>(token, public_key_jwk)</pre
         <ul class="text-sm text-slate-500 space-y-2.5">
           <li><a class="hover:text-primary transition-colors" href="#" data-ko="소개" data-en="About">소개</a></li>
           <li><a class="hover:text-primary transition-colors" href="#" data-ko="블로그" data-en="Blog">블로그</a></li>
-          <li><a class="hover:text-primary transition-colors" href="#">GitHub</a></li>
+          <li><a class="hover:text-primary transition-colors" href="https://github.com/sinmb79/Agent-Identity-Layer" target="_blank">GitHub</a></li>
         </ul>
       </div>
       <div>
@@ -874,7 +884,7 @@ r = <span class="text-primary">verify_offline</span>(token, public_key_jwk)</pre
         <ul class="text-sm text-slate-500 space-y-2.5">
           <li><a class="hover:text-primary transition-colors" href="#" data-ko="개인정보처리방침" data-en="Privacy">개인정보처리방침</a></li>
           <li><a class="hover:text-primary transition-colors" href="#" data-ko="이용약관" data-en="Terms">이용약관</a></li>
-          <li><a class="hover:text-primary transition-colors" href="#">MIT License</a></li>
+          <li><a class="hover:text-primary transition-colors" href="https://github.com/sinmb79/Agent-Identity-Layer/blob/main/LICENSE" target="_blank">MIT License</a></li>
         </ul>
       </div>
     </div>
