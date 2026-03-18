@@ -135,7 +135,7 @@
     <!-- Logo -->
     <a href="#" class="flex items-center gap-2 shrink-0">
       <span class="material-symbols-outlined text-primary text-2xl">fingerprint</span>
-      <span class="font-bold text-base tracking-tight">22B Labs <span class="text-primary/70 font-medium">· AIL</span></span>
+      <span class="font-bold text-base tracking-tight">Agent ID Card</span>
     </a>
 
     <!-- Desktop nav -->
@@ -143,7 +143,7 @@
       <a href="#solution" class="hover:text-white transition-colors">Docs</a>
       <a href="#pricing"  class="hover:text-white transition-colors">Pricing</a>
       <a href="#verify"   class="hover:text-white transition-colors">Verify</a>
-      <a href="https://22blabs-ail.fly.dev/dashboard" target="_blank" class="hover:text-white transition-colors">Dashboard</a>
+      <a href="https://api.agentidcard.org/dashboard" target="_blank" class="hover:text-white transition-colors">Dashboard</a>
     </div>
 
     <!-- CTA -->
@@ -152,7 +152,7 @@
               class="hidden md:block text-xs font-mono text-slate-500 hover:text-slate-300 transition-colors border border-slate-700 px-2 py-1 rounded">
         EN
       </button>
-      <a href="https://22blabs-ail.fly.dev/dashboard" target="_blank" class="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20">
+      <a href="https://api.agentidcard.org/dashboard" target="_blank" class="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all shadow-lg shadow-primary/20">
         Get Started
       </a>
     </div>
@@ -185,7 +185,7 @@
       </p>
 
       <div class="flex flex-wrap gap-3">
-        <a href="https://22blabs-ail.fly.dev/dashboard" target="_blank" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-primary/25 flex items-center gap-2">
+        <a href="https://api.agentidcard.org/dashboard" target="_blank" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-primary/25 flex items-center gap-2">
           <span class="material-symbols-outlined text-base">add_circle</span>
           <span data-ko="에이전트 등록하기" data-en="Register Agent">에이전트 등록하기</span>
         </a>
@@ -374,7 +374,7 @@
             <span class="ml-3 text-slate-600 text-xs">terminal</span>
           </div>
           <div class="p-5 overflow-x-auto">
-<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-500">https://22blabs-ail.fly.dev</span><span class="text-slate-300">/owners/register</span>
+<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-500">https://api.agentidcard.org</span><span class="text-slate-300">/owners/register</span>
 <span class="text-slate-600">{</span>
   <span class="text-blue-300">"email"</span><span class="text-slate-500">:</span> <span class="text-green-400">"you@company.com"</span><span class="text-slate-600">,</span>
   <span class="text-blue-300">"org"</span><span class="text-slate-500">:</span>   <span class="text-green-400">"your_org"</span>
@@ -408,7 +408,7 @@
             <span class="ml-3 text-slate-600 text-xs">terminal</span>
           </div>
           <div class="p-5 overflow-x-auto">
-<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-500">https://22blabs-ail.fly.dev</span><span class="text-slate-300">/agents/register</span>
+<pre class="text-sm"><span class="text-pink-400">POST</span> <span class="text-slate-500">https://api.agentidcard.org</span><span class="text-slate-300">/agents/register</span>
 <span class="text-slate-600">{</span>
   <span class="text-blue-300">"owner_key_id"</span><span class="text-slate-500">:</span> <span class="text-green-400">"owk_c8fb..."</span><span class="text-slate-600">,</span>
   <span class="text-blue-300">"payload"</span><span class="text-slate-500">:</span> <span class="text-slate-600">{</span>
@@ -447,7 +447,7 @@
     <span class="text-blue-300">"token"</span><span class="text-slate-500">:</span>       <span class="text-green-400">"eyJhbGci..."</span><span class="text-slate-600">,</span>
     <span class="text-blue-300">"expires_at"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"2027-03-17"</span>
   <span class="text-slate-600">},</span>
-  <span class="text-blue-300">"nft_image_url"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"https://22blabs-ail.fly.dev/agents/AIL-2026-00001/image"</span><span class="text-slate-600">,</span>
+  <span class="text-blue-300">"nft_image_url"</span><span class="text-slate-500">:</span>  <span class="text-green-400">"https://api.agentidcard.org/agents/AIL-2026-00001/image"</span><span class="text-slate-600">,</span>
   <span class="text-blue-300">"signal_glyph"</span><span class="text-slate-500">:</span>   <span class="text-slate-400">{ "seed": "AIL-2026-00001:..." }</span>
 <span class="text-slate-600">}</span></pre>
           </div>
@@ -867,7 +867,7 @@ r = <span class="text-primary">verify_offline</span>(token, public_key_jwk)</pre
         <ul class="text-sm text-slate-500 space-y-2.5">
           <li><a class="hover:text-primary transition-colors" href="#solution" data-ko="문서" data-en="Docs">문서</a></li>
           <li><a class="hover:text-primary transition-colors" href="#pricing" data-ko="가격" data-en="Pricing">가격</a></li>
-          <li><a class="hover:text-primary transition-colors" href="https://22blabs-ail.fly.dev/dashboard" target="_blank" data-ko="대시보드" data-en="Dashboard">대시보드</a></li>
+          <li><a class="hover:text-primary transition-colors" href="https://api.agentidcard.org/dashboard" target="_blank" data-ko="대시보드" data-en="Dashboard">대시보드</a></li>
           <li><a class="hover:text-primary transition-colors" href="https://github.com/sinmb79/Agent-Identity-Layer/tree/main/sdk">SDK</a></li>
         </ul>
       </div>
