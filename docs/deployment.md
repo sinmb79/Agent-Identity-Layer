@@ -170,20 +170,20 @@ fly deploy
 fly logs
 
 # 헬스체크
-curl https://22blabs-ail.fly.dev/health
+curl https://api.agentidcard.org/health
 
 # 공개키 확인
-curl https://22blabs-ail.fly.dev/keys
+curl https://api.agentidcard.org/keys
 ```
 
 ### 커스텀 도메인 연결 (선택)
 
 ```bash
 # 도메인 추가
-fly certs add api.22blabs.ai
+fly certs add api.agentidcard.org
 
-# DNS에 CNAME 레코드 추가
-# api.22blabs.ai → 22blabs-ail.fly.dev
+# Cloudflare DNS에 CNAME 레코드 추가
+# api.agentidcard.org → 22blabs-ail.fly.dev
 ```
 
 ### 재배포
@@ -301,10 +301,10 @@ docker run -d \
 # /etc/nginx/sites-available/ail
 server {
     listen 443 ssl;
-    server_name api.22blabs.ai;
+    server_name api.agentidcard.org;
 
-    ssl_certificate     /etc/letsencrypt/live/api.22blabs.ai/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/api.22blabs.ai/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/api.agentidcard.org/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.agentidcard.org/privkey.pem;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -316,7 +316,7 @@ server {
 
 ```bash
 # SSL 인증서 발급
-certbot --nginx -d api.22blabs.ai
+certbot --nginx -d api.agentidcard.org
 ```
 
 ---
@@ -328,7 +328,7 @@ certbot --nginx -d api.22blabs.ai
 ### 기본 동작 확인
 
 ```bash
-BASE="https://api.22blabs.ai"   # 실제 배포 URL로 변경
+BASE="https://api.agentidcard.org"   # 실제 배포 URL로 변경
 
 # 1. 헬스체크
 curl $BASE/health
@@ -359,12 +359,12 @@ curl -s -X POST $BASE/owners/verify-email \
 또는 `scripts/demo-register.mjs`에서 `AIL_SERVER` 환경변수를 설정해 실행:
 
 ```bash
-AIL_SERVER=https://api.22blabs.ai node scripts/demo-register.mjs
+AIL_SERVER=https://api.agentidcard.org node scripts/demo-register.mjs
 ```
 
 ### 어드민 대시보드
 
-`https://api.22blabs.ai/dashboard` 접속 후 `ADMIN_API_KEY` 입력.
+`https://api.agentidcard.org/dashboard` 접속 후 `ADMIN_API_KEY` 입력.
 
 ---
 
@@ -379,7 +379,7 @@ AIL_SERVER=https://api.22blabs.ai node scripts/demo-register.mjs
 constructor({ serverUrl = "http://127.0.0.1:3317" } = {}) {
 
 // 변경 후
-constructor({ serverUrl = "https://api.22blabs.ai" } = {}) {
+constructor({ serverUrl = "https://api.agentidcard.org" } = {}) {
 ```
 
 ### Python SDK (`sdk/python/ail_sdk/client.py`)
@@ -389,7 +389,7 @@ constructor({ serverUrl = "https://api.22blabs.ai" } = {}) {
 def __init__(self, server_url: str = "http://127.0.0.1:3317"):
 
 # 변경 후
-def __init__(self, server_url: str = "https://api.22blabs.ai"):
+def __init__(self, server_url: str = "https://api.agentidcard.org"):
 ```
 
 URL 업데이트 후 버전 bump (`0.1.0` → `0.2.0`) 및 npm/PyPI 퍼블리시를 진행합니다.

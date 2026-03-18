@@ -11,7 +11,7 @@ primary_region = "nrt"   # Tokyo — change to your preferred region
   HOST        = "0.0.0.0"
   NODE_ENV    = "production"
   AIL_DB_PATH = "/data/ail.db"
-  AIL_BASE_URL = "https://22blabs-ail.fly.dev"
+  AIL_BASE_URL = "https://api.agentidcard.org"
 
 # Secrets (set via: fly secrets set KEY=value)
 # Required:

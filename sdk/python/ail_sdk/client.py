@@ -4,7 +4,7 @@ AilClient — communicates with a 22B Labs AIL Issuance Server.
 Usage:
     from ail_sdk import AilClient
 
-    client = AilClient(server_url="http://127.0.0.1:3317")
+    client = AilClient(server_url="https://api.agentidcard.org")
 
     owner = client.register_owner(email="boss@example.com", org="my_org")
     client.verify_email(owner_key_id=owner["owner_key_id"], otp=owner["_dev_otp"])
@@ -29,7 +29,7 @@ from .crypto import sign_payload
 
 
 class AilClient:
-    def __init__(self, server_url: str = "http://127.0.0.1:3317"):
+    def __init__(self, server_url: str = "https://api.agentidcard.org"):
         self.server_url = server_url.rstrip("/")
         self._session = requests.Session()
         self._session.headers.update({"Content-Type": "application/json"})

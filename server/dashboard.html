@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>22B Labs · AIL Admin Dashboard</title>
+  <title>Agent ID Card · Admin Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -142,7 +142,7 @@
     <h2>AIL Admin Dashboard</h2>
     <p>Enter your admin API key to continue.</p>
     <input type="password" id="api-key-input" placeholder="X-Admin-Key" autocomplete="off">
-    <input type="text" id="server-url-input" placeholder="Server URL (default: http://127.0.0.1:3317)" autocomplete="off">
+    <input type="text" id="server-url-input" placeholder="Server URL (default: https://api.agentidcard.org)" autocomplete="off">
     <br>
     <button class="btn" onclick="login()">Connect</button>
     <div id="auth-error"></div>
@@ -152,7 +152,7 @@
 <!-- Main app -->
 <div id="app">
   <header>
-    <div class="logo">22B<span>Labs</span> · AIL</div>
+    <div class="logo">Agent ID <span>Card</span></div>
     <div class="server-url" id="server-url-display"></div>
     <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
   </header>
@@ -239,7 +239,7 @@
 
 <script>
   let apiKey = '';
-  let serverUrl = 'http://127.0.0.1:3317';
+  let serverUrl = 'https://api.agentidcard.org';
 
   async function login() {
     apiKey = document.getElementById('api-key-input').value.trim();

@@ -2,17 +2,17 @@
  * email.mjs — Transactional email via SMTP (nodemailer)
  *
  * Required env vars (all optional — falls back to console log if absent):
- *   SMTP_HOST   — e.g. smtp.sendgrid.net
- *   SMTP_PORT   — e.g. 587
- *   SMTP_USER   — SMTP username (SendGrid: "apikey")
- *   SMTP_PASS   — SMTP password / API key
- *   EMAIL_FROM  — Sender address, e.g. noreply@22blabs.ai
+ *   SMTP_HOST   — e.g. smtp.resend.com
+ *   SMTP_PORT   — e.g. 465
+ *   SMTP_USER   — SMTP username (Resend: "resend")
+ *   SMTP_PASS   — SMTP password / API key (Resend: re_xxxx)
+ *   EMAIL_FROM  — Sender address, e.g. noreply@agentidcard.org
  */
 
 import nodemailer from "nodemailer";
 
 let _transporter = null;
-const FROM = process.env.EMAIL_FROM ?? "noreply@22blabs.ai";
+const FROM = process.env.EMAIL_FROM ?? "noreply@agentidcard.org";
 
 function getTransporter() {
   if (_transporter) return _transporter;

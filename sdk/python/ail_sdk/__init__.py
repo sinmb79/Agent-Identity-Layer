@@ -4,7 +4,7 @@ ail-sdk — Python SDK for 22B Labs Agent Identity Layer.
 Quick start:
     from ail_sdk import AilClient
 
-    client = AilClient(server_url="http://127.0.0.1:3317")
+    client = AilClient(server_url="https://api.agentidcard.org")
 
     # 1. Register owner
     owner = client.register_owner(email="you@example.com", org="your_org")

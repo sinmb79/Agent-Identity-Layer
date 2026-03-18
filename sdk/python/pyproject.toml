@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ail-sdk"
@@ -9,12 +9,17 @@ description = "Python SDK for 22B Labs Agent Identity Layer"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-keywords = ["agent-identity", "22blabs", "ail", "credential", "jwt"]
+authors = [{ name = "22B Labs", email = "hello@22blabs.ai" }]
+keywords = ["agent-identity", "22blabs", "ail", "credential", "jwt", "nft", "erc721"]
 dependencies = [
     "cryptography>=42.0.0",
     "PyJWT>=2.8.0",
     "requests>=2.31.0",
 ]
+
+[project.urls]
+Homepage = "https://agentidcard.org"
+Repository = "https://github.com/sinmb79/Agent-Identity-Layer"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0.0"]

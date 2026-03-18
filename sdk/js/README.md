@@ -15,7 +15,7 @@ npm install @22blabs/ail-sdk
 ```js
 import { AilClient } from "@22blabs/ail-sdk";
 
-const client = new AilClient({ serverUrl: "http://127.0.0.1:3317" });
+const client = new AilClient({ serverUrl: "https://api.agentidcard.org" });
 
 // 1. Register owner
 const owner = await client.registerOwner({ email: "you@example.com", org: "your_org" });

@@ -1,0 +1,34 @@
+# Cloudflare Workers configuration for 22B Labs AIL Issuance Server
+# Deploy: npx wrangler deploy
+
+name = "ail-api"
+main = "workers/index.mjs"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Import HTML files as text modules
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = false
+
+[vars]
+AIL_BASE_URL = "https://api.agentidcard.org"
+
+# D1 SQLite database
+[[d1_databases]]
+binding = "DB"
+database_name = "ail-db"
+database_id = "878306bc-3d96-4a4a-9a1e-f8a841660b09"
+
+# Secrets (set via: npx wrangler secret put <NAME>)
+# Required:
+#   MASTER_KEY_JSON   — JSON content of master-key.json
+#   ADMIN_API_KEY     — Admin dashboard key
+# Optional (on-chain NFT):
+#   CHAIN_RPC_URL     — Alchemy RPC URL
+#   CHAIN_PRIVATE_KEY — Minter wallet private key
+#   NFT_CONTRACT_ADDRESS — Deployed AILIdentity contract
+# Optional (email):
+#   RESEND_API_KEY    — Resend API key
+#   EMAIL_FROM        — Sender address (default: noreply@agentidcard.org)

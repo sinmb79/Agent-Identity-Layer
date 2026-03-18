@@ -5,14 +5,14 @@ import { jwtVerify, importJWK } from "jose";
  * AilClient — communicates with a 22B Labs AIL Issuance Server.
  *
  * Usage:
- *   const client = new AilClient({ serverUrl: 'http://127.0.0.1:3317' })
+ *   const client = new AilClient({ serverUrl: 'https://api.agentidcard.org' })
  *   const owner  = await client.registerOwner({ email: '...', org: '...' })
  *   await client.verifyEmail({ owner_key_id: ..., otp: owner._dev_otp })
  *   const agent  = await client.registerAgent({ owner_key_id, private_key_jwk, payload })
  *   const result = await client.verify(agent.credential.token)
  */
 export class AilClient {
-  constructor({ serverUrl = "http://127.0.0.1:3317" } = {}) {
+  constructor({ serverUrl = "https://api.agentidcard.org" } = {}) {
     this.serverUrl = serverUrl.replace(/\/$/, "");
   }
 

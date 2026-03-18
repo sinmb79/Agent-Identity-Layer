@@ -670,7 +670,7 @@ export function generateNftMetadata(agentData) {
   const m = computeMetrics(agentData);
 
   const svg      = agentData._cached_svg ?? generateIdCardSvg(agentData);
-  const svgB64   = Buffer.from(svg).toString("base64");
+  const svgB64   = btoa(unescape(encodeURIComponent(svg)));
   const imageUri = `data:image/svg+xml;base64,${svgB64}`;
 
   return {

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent ID Card — Register Agent</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #161b25; --border: #1e2535;
+      --accent: #4f8ef7; --accent-dim: #2a4a8a;
+      --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+      --text: #e2e8f0; --muted: #64748b;
+      --font: "Inter", system-ui, sans-serif;
+      --mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font);
+           font-size: 14px; line-height: 1.6; min-height: 100vh;
+           display: flex; flex-direction: column; align-items: center; }
+
+    .top-bar { width: 100%; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+    .top-bar a { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .top-bar a:hover { color: var(--text); }
+    .logo { font-weight: 800; font-size: 16px; color: var(--text); }
+    .logo span { color: var(--accent); }
+
+    .container { width: 100%; max-width: 520px; padding: 0 20px; margin-top: 40px; }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+    .subtitle { color: var(--muted); text-align: center; margin-bottom: 36px; font-size: 14px; }
+
+    /* Steps */
+    .steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 36px; }
+    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+    .step-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .step-dot.done { background: var(--green); }
+
+    .step-label { text-align: center; color: var(--muted); font-size: 12px; font-weight: 600;
+                  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
+
+    /* Card */
+    .card { background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px; }
+
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted);
+            margin-bottom: 6px; margin-top: 16px; }
+    label:first-child { margin-top: 0; }
+
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: var(--font); font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    select { cursor: pointer; }
+    textarea { resize: vertical; min-height: 60px; font-family: var(--mono); font-size: 12px; }
+
+    .otp-group { display: flex; gap: 8px; }
+    .otp-group input { text-align: center; font-family: var(--mono); font-size: 20px; letter-spacing: 0.2em; }
+
+    .btn { padding: 12px 24px; background: var(--accent); color: #fff; border: none;
+           border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+           width: 100%; margin-top: 24px; transition: all 0.2s; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); background: rgba(79,142,247,0.05); }
+
+    .error { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; }
+    .success { color: var(--green); font-size: 13px; margin-top: 12px; text-align: center; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    .hidden { display: none !important; }
+
+    /* Result card */
+    .result-section { margin-top: 16px; }
+    .result-item { background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+                   padding: 14px; margin-top: 12px; }
+    .result-item .label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+                          letter-spacing: 0.05em; margin-bottom: 4px; }
+    .result-item .value { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+    .result-item .value.big { font-size: 22px; font-weight: 800; color: var(--accent); }
+    .copy-btn { float: right; background: none; border: 1px solid var(--border); color: var(--muted);
+                border-radius: 6px; padding: 2px 10px; font-size: 11px; cursor: pointer; }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .glyph-preview { text-align: center; margin-top: 16px; }
+    .glyph-preview img { width: 120px; height: 120px; border-radius: 12px;
+                         border: 2px solid var(--border); }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .scope-grid label { margin: 0; display: flex; align-items: center; gap: 6px;
+                        font-weight: 400; color: var(--text); cursor: pointer; }
+    .scope-grid input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+
+    @media (max-width: 480px) {
+      .container { margin-top: 20px; }
+      .card { padding: 20px; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">Agent ID <span>Card</span></div>
+  <div style="flex:1"></div>
+  <a href="https://agentidcard.org">Home</a>
+  <a href="https://agentidcard.org/#solution">Docs</a>
+</div>
+
+<div class="container">
+  <h1>Register Your Agent</h1>
+  <p class="subtitle">Get a signed identity credential for your AI agent in 3 steps.</p>
+
+  <!-- Step dots -->
+  <div class="steps">
+    <div class="step-dot active" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-dot" id="dot-3"></div>
+  </div>
+
+  <!-- ═══ STEP 1: Owner Registration ═══ -->
+  <div id="step-1">
+    <div class="step-label">Step 1 — Owner Registration</div>
+    <div class="card">
+      <label for="email">Email Address</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      <p class="hint">We'll send a verification code to this address.</p>
+
+      <label for="org">Organization (optional)</label>
+      <input type="text" id="org" placeholder="your_company">
+
+      <button class="btn" id="btn-register" onclick="registerOwner()">Register Owner</button>
+      <div id="step1-error" class="error hidden"></div>
+      <div id="step1-success" class="success hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: Email Verification ═══ -->
+  <div id="step-2" class="hidden">
+    <div class="step-label">Step 2 — Email Verification</div>
+    <div class="card">
+      <p style="color:var(--muted); text-align:center; margin-bottom:16px;">
+        Enter the 6-digit code sent to <strong id="verify-email-display" style="color:var(--text)"></strong>
+      </p>
+      <div class="otp-group">
+        <input type="text" id="otp" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+      </div>
+      <button class="btn" id="btn-verify" onclick="verifyEmail()">Verify</button>
+      <div id="step2-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: Agent Registration ═══ -->
+  <div id="step-3" class="hidden">
+    <div class="step-label">Step 3 — Agent Details</div>
+    <div class="card">
+      <label for="display_name">Agent Display Name</label>
+      <input type="text" id="display_name" placeholder="MyAssistant">
+
+      <label for="role">Role</label>
+      <select id="role">
+        <option value="assistant">Assistant</option>
+        <option value="coding">Coding</option>
+        <option value="research">Research</option>
+        <option value="automation">Automation</option>
+        <option value="customer_service">Customer Service</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="provider">Provider</label>
+      <select id="provider">
+        <option value="anthropic">Anthropic</option>
+        <option value="openai">OpenAI</option>
+        <option value="google">Google</option>
+        <option value="meta">Meta</option>
+        <option value="custom">Custom / Self-hosted</option>
+      </select>
+
+      <label for="model">Model (optional)</label>
+      <input type="text" id="model" placeholder="claude-sonnet-4-6">
+
+      <div class="divider"></div>
+      <label style="margin-top:0">Scope &amp; Permissions</label>
+      <div class="scope-grid">
+        <label><input type="checkbox" id="scope-network"> Network Access</label>
+        <label><input type="checkbox" id="scope-write"> Write Access</label>
+        <label><input type="checkbox" id="scope-secrets"> Secrets Access</label>
+        <label><input type="checkbox" checked id="scope-human"> Human-in-the-loop</label>
+      </div>
+
+      <button class="btn" id="btn-create" onclick="createAgent()">Issue Credential</button>
+      <div id="step3-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ RESULT ═══ -->
+  <div id="step-result" class="hidden">
+    <div class="step-label" style="color:var(--green);">Registration Complete</div>
+    <div class="card">
+      <div class="result-section">
+        <div class="result-item">
+          <div class="label">AIL ID</div>
+          <div class="value big" id="res-ail-id"></div>
+        </div>
+
+        <div class="glyph-preview">
+          <img id="res-glyph" src="" alt="Signal Glyph">
+          <p class="hint" style="margin-top:8px">Signal Glyph — unique visual fingerprint</p>
+        </div>
+
+        <div class="result-item">
+          <div class="label">JWT Credential <button class="copy-btn" onclick="copyText('res-token')">Copy</button></div>
+          <div class="value" id="res-token" style="max-height:80px;overflow:auto;font-size:11px;"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Behavior Fingerprint</div>
+          <div class="value" id="res-fingerprint"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Owner Key ID <button class="copy-btn" onclick="copyText('res-owner-key')">Copy</button></div>
+          <div class="value" id="res-owner-key"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Private Key (save securely!) <button class="copy-btn" onclick="copyText('res-private-key')">Copy</button></div>
+          <div class="value" id="res-private-key" style="max-height:80px;overflow:auto;font-size:11px;color:var(--yellow);"></div>
+          <p class="hint" style="color:var(--yellow);">This private key will NOT be shown again. Save it now.</p>
+        </div>
+      </div>
+
+      <button class="btn btn-outline" style="margin-top:24px" onclick="downloadResult()">Download Credentials (JSON)</button>
+      <button class="btn btn-outline" style="margin-top:8px" onclick="resetForm()">Register Another Agent</button>
+    </div>
+  </div>
+
+  <div style="height:60px"></div>
+</div>
+
+<script>
+const API = window.location.origin;
+let ownerData = null; // { owner_key_id, private_key_jwk, _dev_otp }
+let agentData = null;
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function hideError(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+function setStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step-'+i).classList.toggle('hidden', i !== n);
+    const dot = document.getElementById('dot-'+i);
+    dot.classList.toggle('active', i === n);
+    dot.classList.toggle('done', i < n);
+  });
+  document.getElementById('step-result').classList.add('hidden');
+}
+
+// ── Step 1: Register Owner ──
+async function registerOwner() {
+  hideError('step1-error');
+  const email = document.getElementById('email').value.trim();
+  const org = document.getElementById('org').value.trim() || undefined;
+  if (!email) return showError('step1-error', 'Email is required.');
+
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = 'Registering...';
+
+  try {
+    const res = await fetch(API + '/owners/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, org }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+    ownerData = data;
+    document.getElementById('verify-email-display').textContent = email;
+
+    // If dev OTP returned (dev mode), auto-fill
+    if (data._dev_otp) {
+      document.getElementById('otp').value = data._dev_otp;
+    }
+
+    setStep(2);
+  } catch (e) {
+    showError('step1-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Register Owner';
+  }
+}
+
+// ── Step 2: Verify Email ──
+async function verifyEmail() {
+  hideError('step2-error');
+  const otp = document.getElementById('otp').value.trim();
+  if (!otp) return showError('step2-error', 'Enter the verification code.');
+
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  try {
+    const res = await fetch(API + '/owners/verify-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ owner_key_id: ownerData.owner_key_id, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed');
+
+    setStep(3);
+  } catch (e) {
+    showError('step2-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify';
+  }
+}
+
+// ── Step 3: Create Agent ──
+async function createAgent() {
+  hideError('step3-error');
+  const display_name = document.getElementById('display_name').value.trim();
+  if (!display_name) return showError('step3-error', 'Display name is required.');
+
+  const role = document.getElementById('role').value;
+  const provider = document.getElementById('provider').value;
+  const model = document.getElementById('model').value.trim() || undefined;
+
+  const network = document.getElementById('scope-network').checked ? 'restricted' : 'none';
+  const write_access = document.getElementById('scope-write').checked;
+  const secrets = document.getElementById('scope-secrets').checked ? 'env_only' : 'none';
+  const humanLoop = document.getElementById('scope-human').checked;
+
+  const payload = {
+    display_name, role, provider, model,
+    scope: {
+      network, secrets, write_access,
+      approval_policy: humanLoop ? {
+        irreversible_actions: 'human_required',
+        external_posting: 'human_required',
+        destructive_file_ops: 'human_required',
+      } : {
+        irreversible_actions: 'auto',
+        external_posting: 'auto',
+        destructive_file_ops: 'auto',
+      },
+    },
+  };
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true; btn.textContent = 'Issuing credential...';
+
+  try {
+    // Sign payload with owner private key using Web Crypto
+    const payloadBytes = new TextEncoder().encode(canonicalJson(payload));
+    const privateKey = await importPrivateKey(ownerData.private_key_jwk);
+    const sigBuf = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privateKey, payloadBytes);
+    const owner_signature = bufToBase64url(new Uint8Array(sigBuf));
+
+    const res = await fetch(API + '/agents/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        owner_key_id: ownerData.owner_key_id,
+        owner_signature,
+        payload,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Agent registration failed');
+
+    agentData = data;
+    showResult(data);
+  } catch (e) {
+    showError('step3-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Issue Credential';
+  }
+}
+
+function showResult(data) {
+  [1,2,3].forEach(i => document.getElementById('step-'+i).classList.add('hidden'));
+  document.querySelectorAll('.step-dot').forEach(d => d.classList.add('done'));
+
+  document.getElementById('res-ail-id').textContent = data.ail_id;
+  document.getElementById('res-token').textContent = data.credential?.token || '—';
+  document.getElementById('res-fingerprint').textContent = data.behavior_fingerprint || '—';
+  document.getElementById('res-owner-key').textContent = ownerData.owner_key_id;
+  document.getElementById('res-private-key').textContent = JSON.stringify(ownerData.private_key_jwk);
+
+  if (data.signal_glyph?.svg_data_uri) {
+    document.getElementById('res-glyph').src = data.signal_glyph.svg_data_uri;
+  }
+
+  document.getElementById('step-result').classList.remove('hidden');
+}
+
+function downloadResult() {
+  const blob = new Blob([JSON.stringify({
+    ail_id: agentData.ail_id,
+    credential: agentData.credential,
+    signal_glyph: agentData.signal_glyph,
+    behavior_fingerprint: agentData.behavior_fingerprint,
+    owner_key_id: ownerData.owner_key_id,
+    private_key_jwk: ownerData.private_key_jwk,
+  }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (agentData.ail_id || 'agent') + '-credentials.json';
+  a.click();
+}
+
+function resetForm() {
+  ownerData = null;
+  agentData = null;
+  document.getElementById('email').value = '';
+  document.getElementById('org').value = '';
+  document.getElementById('otp').value = '';
+  document.getElementById('display_name').value = '';
+  document.getElementById('model').value = '';
+  setStep(1);
+}
+
+function copyText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(id).parentElement.querySelector('.copy-btn');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); }
+  });
+}
+
+// ── Crypto helpers ──
+function canonicalJson(obj) {
+  if (obj === null || obj === undefined) return 'null';
+  if (typeof obj === 'string') return JSON.stringify(obj);
+  if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
+  if (Array.isArray(obj)) return '[' + obj.map(canonicalJson).join(',') + ']';
+  const keys = Object.keys(obj).sort();
+  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJson(obj[k])).join(',') + '}';
+}
+
+async function importPrivateKey(jwk) {
+  return crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+}
+
+function bufToBase64url(buf) {
+  let binary = '';
+  for (const b of buf) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+</script>
+</body>
+</html>
