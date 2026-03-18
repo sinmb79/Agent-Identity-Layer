@@ -87,7 +87,7 @@
     .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .glyph-preview { text-align: center; margin-top: 16px; }
-    .glyph-preview img { width: 120px; height: 120px; border-radius: 12px;
+    .glyph-preview img { width: 100%; max-width: 400px; height: auto; border-radius: 16px;
                          border: 2px solid var(--border); }
 
     .divider { height: 1px; background: var(--border); margin: 20px 0; }
@@ -139,8 +139,8 @@
 <div class="top-bar">
   <div class="logo">Agent ID <span>Card</span></div>
   <div style="flex:1"></div>
-  <a href="https://agentidcard.org">Home</a>
-  <a href="https://agentidcard.org/#solution">Docs</a>
+  <a href="/">Home</a>
+  <a href="/#solution">Docs</a>
   <div id="wallet-top" class="hidden" style="display:none;">
     <span class="wallet-addr" id="wallet-top-addr" style="font-size:11px;"></span>
   </div>
@@ -384,7 +384,7 @@
 
         <div class="glyph-preview">
           <img id="res-glyph" src="" alt="Signal Glyph">
-          <p class="hint" style="margin-top:8px">Signal Glyph — unique visual fingerprint</p>
+          <p class="hint" style="margin-top:8px">Agent ID Card — your agent's unique identity</p>
         </div>
 
         <div id="res-nft-section" class="hidden">
@@ -422,6 +422,7 @@
 
       <button class="btn btn-outline" style="margin-top:24px" onclick="downloadResult()">Download Credentials (JSON)</button>
       <button class="btn btn-outline" style="margin-top:8px" onclick="resetForm()">Register Another Agent</button>
+      <a href="/" class="btn btn-outline" style="margin-top:8px; display:block; text-align:center; text-decoration:none; color:var(--text);">Go Home</a>
     </div>
   </div>
 
@@ -503,8 +504,6 @@ async function loginOwner() {
 
     loginOwnerKeyId = data.owner_key_id;
     document.getElementById('login-email-display').textContent = email;
-
-    if (data._dev_otp) document.getElementById('login-otp').value = data._dev_otp;
 
     // Show login OTP step
     document.getElementById('step-1').classList.add('hidden');
@@ -595,35 +594,52 @@ function selectPlan(plan) {
   document.getElementById('plan-standard').classList.toggle('selected', plan === 'standard');
   document.getElementById('wallet-required-hint').classList.toggle('hidden', plan === 'free');
   document.getElementById('payment-section').classList.toggle('hidden', plan !== 'standard' || !walletAddress);
-  // Update payment label
-  if (plan === 'standard') {
-    const label = document.querySelector('#payment-section label');
-    if (label) label.textContent = 'Payment — $2 USDC on Base';
+  updateContinueButton();
+}
+
+function updateContinueButton() {
+  const btn = document.getElementById('btn-step3-next');
+  if (selectedPlan === 'standard' && !paymentComplete) {
+    btn.disabled = true;
+    btn.textContent = walletAddress ? 'Complete payment to continue' : 'Connect wallet & pay to continue';
+    btn.style.opacity = '0.4';
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Continue';
+    btn.style.opacity = '1';
   }
 }
 
 // ── Wallet Connection ──
 async function connectWallet() {
-  if (typeof window.ethereum === 'undefined') {
-    alert('MetaMask is not installed. Please install MetaMask to continue.');
+  // Check for MetaMask or any injected provider
+  const provider = window.ethereum;
+  if (!provider) {
+    showError('step3-error', 'MetaMask is not installed. Please install MetaMask first.');
     window.open('https://metamask.io/download/', '_blank');
     return;
   }
 
+  const btn = document.getElementById('btn-connect-wallet');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+
   try {
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No accounts returned. Please unlock MetaMask.');
+    }
     walletAddress = accounts[0];
 
     // Switch to Base network
     try {
-      await window.ethereum.request({
+      await provider.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: TARGET_CHAIN_ID }],
       });
     } catch (switchError) {
-      // Chain not added, add it
-      if (switchError.code === 4902) {
-        await window.ethereum.request({
+      // Chain not added (4902) or unrecognized chain
+      if (switchError.code === 4902 || switchError.code === -32603) {
+        await provider.request({
           method: 'wallet_addEthereumChain',
           params: [{
             chainId: TARGET_CHAIN_ID,
@@ -637,20 +653,30 @@ async function connectWallet() {
               : 'https://sepolia.basescan.org'],
           }],
         });
+      } else if (switchError.code === 4001) {
+        // User rejected chain switch — still connected, just on wrong chain
+        showError('step3-error', 'Please switch to Base network in MetaMask to proceed.');
       }
     }
 
     updateWalletUI();
 
     // Listen for account/chain changes
-    window.ethereum.on('accountsChanged', (accs) => {
+    provider.on('accountsChanged', (accs) => {
       walletAddress = accs[0] || null;
       updateWalletUI();
     });
-    window.ethereum.on('chainChanged', () => updateWalletUI());
+    provider.on('chainChanged', () => updateWalletUI());
 
   } catch (err) {
     console.error('Wallet connection failed:', err);
+    if (err.code === 4001) {
+      showError('step3-error', 'Connection rejected. Please approve the MetaMask request.');
+    } else {
+      showError('step3-error', 'Wallet connection failed: ' + (err.message || 'Unknown error'));
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = '🦊 Connect MetaMask';
   }
 }
 
@@ -684,6 +710,7 @@ async function updateWalletUI() {
       document.getElementById('payment-section').classList.remove('hidden');
       document.getElementById('payment-addr').textContent = PAYMENT_RECEIVER;
     }
+    updateContinueButton();
   } else {
     notConnected.classList.remove('hidden');
     connected.classList.add('hidden');
@@ -730,6 +757,7 @@ async function payWithUSDC() {
       statusBox.className = 'payment-status success';
       statusBox.innerHTML = 'Payment confirmed! You can now proceed.';
       btn.textContent = 'Paid';
+      updateContinueButton();
     }
   } catch (err) {
     if (err.code === 4001) {
@@ -801,7 +829,6 @@ async function registerOwner() {
 
     ownerData = data;
     document.getElementById('verify-email-display').textContent = email;
-    if (data._dev_otp) document.getElementById('otp').value = data._dev_otp;
     setStep(2);
   } catch (e) {
     showError('step1-error', e.message);
@@ -902,11 +929,17 @@ function showResult(data) {
 
   document.getElementById('res-ail-id').textContent = data.ail_id;
   document.getElementById('res-token').textContent = data.credential?.token || '—';
-  document.getElementById('res-fingerprint').textContent = data.behavior_fingerprint || '—';
+  // behavior_fingerprint is an object with .hash property
+  const fp = data.behavior_fingerprint;
+  document.getElementById('res-fingerprint').textContent =
+    typeof fp === 'string' ? fp : (fp?.hash || JSON.stringify(fp) || '—');
   document.getElementById('res-owner-key').textContent = ownerData.owner_key_id;
   document.getElementById('res-private-key').textContent = JSON.stringify(ownerData.private_key_jwk);
 
-  if (data.signal_glyph?.svg_data_uri) {
+  // Load the ID card image from the server
+  if (data.nft_image_url) {
+    document.getElementById('res-glyph').src = API + data.nft_image_url;
+  } else if (data.signal_glyph?.svg_data_uri) {
     document.getElementById('res-glyph').src = data.signal_glyph.svg_data_uri;
   }
 

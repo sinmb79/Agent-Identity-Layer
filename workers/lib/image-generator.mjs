@@ -542,9 +542,9 @@ export function generateIdCardSvg(agentData) {
   <rect x="0" y="${HEADER_H}" width="${W}" height="1" fill="#1e2535"/>
 
   <text x="24" y="28" font-family="Inter, Arial, sans-serif" font-size="11"
-        font-weight="700" letter-spacing="3" fill="#64748b">22B LABS</text>
+        font-weight="700" letter-spacing="3" fill="#64748b">AGENT ID CARD</text>
   <text x="24" y="52" font-family="Inter, Arial, sans-serif" font-size="16"
-        font-weight="700" letter-spacing="1" fill="#e2e8f0">AGENT IDENTITY LAYER</text>
+        font-weight="700" letter-spacing="1" fill="#e2e8f0">AI AGENT IDENTITY CREDENTIAL</text>
 
   ${isSigned ? `
   <rect x="${W-120}" y="18" width="96" height="36" rx="8" fill="#052e16" stroke="#22c55e" stroke-width="1"/>
@@ -649,10 +649,10 @@ export function generateIdCardSvg(agentData) {
   <text x="460" y="${FOOTER_TOP+20}" font-family="Inter, Arial, sans-serif"
         font-size="9" fill="#64748b" letter-spacing="1">ISSUER</text>
   <text x="460" y="${FOOTER_TOP+34}" font-family="'JetBrains Mono', 'Courier New', monospace"
-        font-size="11" fill="#a5c3ff">22blabs.ai</text>
+        font-size="11" fill="#a5c3ff">agentidcard.org</text>
 
   <text x="${W/2}" y="${H-10}" font-family="Inter, Arial, sans-serif" font-size="9"
-        fill="#1e2535" text-anchor="middle" letter-spacing="2">22B LABS · AGENT IDENTITY LAYER · ${ailId}</text>
+        fill="#1e2535" text-anchor="middle" letter-spacing="2">AGENT ID CARD · ${ailId}</text>
 
 </svg>`;
 }
@@ -676,9 +676,9 @@ export function generateNftMetadata(agentData) {
   return {
     name: `${agent?.display_name ?? "Agent"} · ${ail_id ?? "AIL"}`,
     description:
-      `22B Labs Agent Identity Credential. ` +
+      `Agent ID Card — AI Agent Identity Credential. ` +
       `Role: ${agent?.role ?? "unknown"}. ` +
-      `Issued by 22blabs.ai.`,
+      `Issued by agentidcard.org.`,
     image: imageUri,
     external_url: `https://agentidcard.org/agents/${ail_id}`,
     attributes: [

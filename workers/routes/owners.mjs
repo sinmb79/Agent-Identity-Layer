@@ -60,7 +60,6 @@ ownersRoutes.post("/owners/register", async (c) => {
     message:
       "Keypair issued. Verify your email with POST /owners/verify-email. " +
       "Store your private key securely — it will not be shown again.",
-    _dev_otp: otp,
   }, 201);
 });
 
@@ -141,7 +140,6 @@ ownersRoutes.post("/owners/login", async (c) => {
   return c.json({
     owner_key_id: owner.id,
     message: "Login OTP sent to your email.",
-    _dev_otp: otp,
   });
 });
 

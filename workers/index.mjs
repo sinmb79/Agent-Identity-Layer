@@ -13,6 +13,7 @@ import { verifyRoutes } from "./routes/verify.mjs";
 import { adminRoutes } from "./routes/admin.mjs";
 import dashboardHtml from "../server/dashboard.html";
 import registerHtml from "../server/register.html";
+import landingHtml from "../web-page/index.html";
 
 const app = new Hono();
 
@@ -34,8 +35,11 @@ app.use("*", async (c, next) => {
   await next();
 });
 
+// Landing page
+app.get("/", (c) => c.html(landingHtml));
+
 // Health check
-app.get("/health", (c) => c.json({ status: "ok", service: "22blabs-ail-issuer" }));
+app.get("/health", (c) => c.json({ status: "ok", service: "agent-id-card" }));
 
 // Dashboard UI (admin)
 app.get("/dashboard", (c) => c.html(dashboardHtml));
