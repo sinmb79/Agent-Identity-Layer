@@ -1,7 +1,7 @@
 {
   "name": "@22blabs/ail-sdk",
   "version": "0.1.0",
-  "description": "JavaScript SDK for 22B Labs Agent Identity Layer — credential issuance, verification, and envelope assembly.",
+  "description": "JavaScript SDK for Agent ID Card — credential issuance, verification, and envelope assembly.",
   "type": "module",
   "main": "./index.mjs",
   "exports": {

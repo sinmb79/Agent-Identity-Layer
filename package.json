@@ -2,7 +2,7 @@
   "name": "agent-identity-layer",
   "private": true,
   "version": "0.1.0",
-  "description": "Agent identity credential spec and issuance server for 22B Labs Agent Identity Layer.",
+  "description": "Agent identity credential spec and issuance server for Agent ID Card.",
   "type": "module",
   "engines": {
     "node": ">=22.5.0"
