@@ -35,16 +35,16 @@ export async function sendOwnerOtp(env, email, otp, expiresAt) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: `22B Labs AIL <${from}>`,
+      from: `Agent ID Card <${from}>`,
       to: [email],
-      subject: `Your AIL verification code: ${otp}`,
+      subject: `Your Agent ID Card verification code: ${otp}`,
       html: `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family:system-ui,sans-serif;background:#0a0a0a;color:#e5e5e5;padding:40px 20px">
   <div style="max-width:480px;margin:0 auto;background:#111;border:1px solid #333;border-radius:12px;padding:32px">
-    <h1 style="font-size:18px;color:#fff;margin:0 0 8px">22B Labs<br><span style="color:#7c3aed">Agent Identity Layer</span></h1>
+    <h1 style="font-size:18px;color:#fff;margin:0 0 8px">Agent ID <span style="color:#4f8ef7">Card</span></h1>
     <p style="color:#999;margin:0 0 32px;font-size:14px">Email Verification</p>
     <p style="margin:0 0 16px;font-size:14px;color:#ccc">Your verification code:</p>
     <div style="background:#1e1e2e;border:1px solid #7c3aed;border-radius:8px;padding:20px;text-align:center;letter-spacing:12px;font-size:32px;font-weight:700;font-family:monospace;color:#fff">

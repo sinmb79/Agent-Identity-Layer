@@ -158,20 +158,85 @@
     <div class="step-dot" id="dot-4"></div>
   </div>
 
-  <!-- ═══ STEP 1: Owner Registration ═══ -->
+  <!-- ═══ STEP 1: Owner Registration / Login ═══ -->
   <div id="step-1">
-    <div class="step-label">Step 1 — Owner Registration</div>
+    <!-- Mode toggle -->
+    <div style="display:flex; justify-content:center; gap:4px; margin-bottom:20px;
+                background:var(--surface); border-radius:10px; padding:4px; border:1px solid var(--border);">
+      <button id="mode-register" onclick="setMode('register')"
+              style="flex:1; padding:8px 16px; border-radius:8px; border:none; font-size:13px; font-weight:600;
+                     cursor:pointer; transition:all 0.2s; background:var(--accent); color:#fff;">
+        New Account
+      </button>
+      <button id="mode-login" onclick="setMode('login')"
+              style="flex:1; padding:8px 16px; border-radius:8px; border:none; font-size:13px; font-weight:600;
+                     cursor:pointer; transition:all 0.2s; background:transparent; color:var(--muted);">
+        Login
+      </button>
+    </div>
+
+    <!-- Register mode -->
+    <div id="form-register">
+      <div class="step-label">Step 1 — Owner Registration</div>
+      <div class="card">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <p class="hint">We'll send a verification code to this address.</p>
+
+        <label for="org">Organization (optional)</label>
+        <input type="text" id="org" placeholder="your_company">
+
+        <button class="btn" id="btn-register" onclick="registerOwner()">Register Owner</button>
+        <div id="step1-error" class="error hidden"></div>
+        <div id="step1-success" class="success hidden"></div>
+      </div>
+    </div>
+
+    <!-- Login mode -->
+    <div id="form-login" class="hidden">
+      <div class="step-label">Login — Existing Owner</div>
+      <div class="card">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+        <p class="hint">We'll send a login code to your registered email.</p>
+
+        <button class="btn" id="btn-login" onclick="loginOwner()">Send Login Code</button>
+        <div id="login-error" class="error hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP LOGIN-OTP: Login verification ═══ -->
+  <div id="step-login-otp" class="hidden">
+    <div class="step-label">Login — Enter Verification Code</div>
     <div class="card">
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
-      <p class="hint">We'll send a verification code to this address.</p>
+      <p style="color:var(--muted); text-align:center; margin-bottom:16px;">
+        Enter the 6-digit code sent to <strong id="login-email-display" style="color:var(--text)"></strong>
+      </p>
+      <div class="otp-group">
+        <input type="text" id="login-otp" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+      </div>
+      <button class="btn" id="btn-verify-login" onclick="verifyLogin()">Verify & Login</button>
+      <div id="login-otp-error" class="error hidden"></div>
+    </div>
+  </div>
 
-      <label for="org">Organization (optional)</label>
-      <input type="text" id="org" placeholder="your_company">
+  <!-- ═══ STEP DASHBOARD: Logged-in owner dashboard ═══ -->
+  <div id="step-dashboard" class="hidden">
+    <div class="step-label" style="color:var(--green);">Welcome Back</div>
+    <div class="card">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div style="font-size:18px; font-weight:700;" id="dash-email"></div>
+        <div style="font-size:12px; color:var(--muted);" id="dash-org"></div>
+        <div style="font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:4px;" id="dash-keyid"></div>
+      </div>
 
-      <button class="btn" id="btn-register" onclick="registerOwner()">Register Owner</button>
-      <div id="step1-error" class="error hidden"></div>
-      <div id="step1-success" class="success hidden"></div>
+      <div class="divider"></div>
+      <label style="margin-top:0;">Your Agents</label>
+      <div id="dash-agents" style="margin-top:8px;"></div>
+
+      <button class="btn" style="margin-top:20px;" onclick="dashboardToRegister()">Register New Agent</button>
+      <button class="btn btn-outline" style="margin-top:8px;" onclick="resetForm()">Logout</button>
     </div>
   </div>
 
@@ -200,15 +265,18 @@
         <div class="plan-card selected" onclick="selectPlan('free')" id="plan-free">
           <div class="plan-name">Free</div>
           <div class="plan-price">$0</div>
-          <div class="plan-desc">1 Agent<br>JWT only<br>No NFT</div>
+          <div class="plan-desc">First agent free<br>JWT + NFT</div>
         </div>
-        <div class="plan-card" onclick="selectPlan('pro')" id="plan-pro">
-          <div class="plan-badge">POPULAR</div>
-          <div class="plan-name">Pro</div>
-          <div class="plan-price">$29<small>/mo</small></div>
-          <div class="plan-desc">20 Agents<br>JWT + NFT<br>Multi-chain</div>
+        <div class="plan-card" onclick="selectPlan('standard')" id="plan-standard">
+          <div class="plan-badge">PAY PER AGENT</div>
+          <div class="plan-name">Standard</div>
+          <div class="plan-price">$2<small> USDC</small></div>
+          <div class="plan-desc">Per additional agent<br>JWT + NFT</div>
         </div>
       </div>
+      <p class="hint" style="text-align:center; margin-top:8px;">
+        Need 20+ agents? <strong style="color:var(--green);">Bulk: $30 USDC for 20 agents ($1.50 each)</strong>
+      </p>
 
       <!-- Wallet section -->
       <div class="divider"></div>
@@ -240,16 +308,16 @@
       <!-- Pro payment section -->
       <div id="payment-section" class="hidden">
         <div class="divider"></div>
-        <label style="margin-top:0">Payment — $29 USDC on Base</label>
+        <label style="margin-top:0">Payment — $2 USDC on Base</label>
         <p class="hint" style="margin-bottom:12px;">
-          Pay with USDC on Base network. Make sure you have enough USDC and ETH for gas.
+          Pay $2 USDC per agent on Base network. Make sure you have enough USDC and ETH for gas.
         </p>
         <div class="result-item" style="margin-top:0;">
           <div class="label">Payment Address</div>
           <div class="value" id="payment-addr" style="font-size:12px;"></div>
         </div>
         <button class="btn" id="btn-pay" onclick="payWithUSDC()" style="margin-top:12px;">
-          Pay $29 USDC
+          Pay $2 USDC
         </button>
         <div id="payment-status-box" class="hidden"></div>
       </div>
@@ -372,7 +440,7 @@ const TARGET_CHAIN_ID = BASE_SEPOLIA_ID; // Switch to BASE_CHAIN_ID for mainnet
 // USDC contract on Base Sepolia (use real Base mainnet USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
 const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia USDC
 const USDC_DECIMALS = 6;
-const PRO_PRICE_USDC = 29;
+const STANDARD_PRICE_USDC = 2;
 const PAYMENT_RECEIVER = '0x4eeAD61dF800fcfA7a9F698f811a855389F74b6C'; // Your receiver address
 
 let ownerData = null;
@@ -380,6 +448,8 @@ let agentData = null;
 let selectedPlan = 'free';
 let walletAddress = null;
 let paymentComplete = false;
+let currentMode = 'register'; // 'register' or 'login'
+let loginOwnerKeyId = null;
 
 // ── UI Helpers ──
 function showError(id, msg) {
@@ -389,6 +459,11 @@ function showError(id, msg) {
 function hideError(id) { document.getElementById(id).classList.add('hidden'); }
 
 function setStep(n) {
+  // Hide login-related panels
+  document.getElementById('step-login-otp').classList.add('hidden');
+  document.getElementById('step-dashboard').classList.add('hidden');
+  document.querySelectorAll('.steps').forEach(el => el.style.display = 'flex');
+
   for (let i = 1; i <= TOTAL_STEPS; i++) {
     const el = document.getElementById('step-' + i);
     if (el) el.classList.toggle('hidden', i !== n);
@@ -398,13 +473,133 @@ function setStep(n) {
   document.getElementById('step-result').classList.add('hidden');
 }
 
+// ── Mode Toggle ──
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('form-register').classList.toggle('hidden', mode !== 'register');
+  document.getElementById('form-login').classList.toggle('hidden', mode !== 'login');
+  document.getElementById('mode-register').style.background = mode === 'register' ? 'var(--accent)' : 'transparent';
+  document.getElementById('mode-register').style.color = mode === 'register' ? '#fff' : 'var(--muted)';
+  document.getElementById('mode-login').style.background = mode === 'login' ? 'var(--accent)' : 'transparent';
+  document.getElementById('mode-login').style.color = mode === 'login' ? '#fff' : 'var(--muted)';
+}
+
+// ── Login ──
+async function loginOwner() {
+  hideError('login-error');
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) return showError('login-error', 'Email is required.');
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  try {
+    const res = await fetch(API + '/owners/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || 'Login failed');
+
+    loginOwnerKeyId = data.owner_key_id;
+    document.getElementById('login-email-display').textContent = email;
+
+    if (data._dev_otp) document.getElementById('login-otp').value = data._dev_otp;
+
+    // Show login OTP step
+    document.getElementById('step-1').classList.add('hidden');
+    document.getElementById('step-login-otp').classList.remove('hidden');
+  } catch (e) {
+    showError('login-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Login Code';
+  }
+}
+
+async function verifyLogin() {
+  hideError('login-otp-error');
+  const otp = document.getElementById('login-otp').value.trim();
+  if (!otp) return showError('login-otp-error', 'Enter the verification code.');
+
+  const btn = document.getElementById('btn-verify-login');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  try {
+    const res = await fetch(API + '/owners/verify-login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ owner_key_id: loginOwnerKeyId, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || 'Verification failed');
+
+    // Show dashboard
+    showDashboard(data);
+  } catch (e) {
+    showError('login-otp-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify & Login';
+  }
+}
+
+function showDashboard(data) {
+  // Hide all other steps
+  document.getElementById('step-1').classList.add('hidden');
+  document.getElementById('step-login-otp').classList.add('hidden');
+  document.querySelectorAll('.steps').forEach(el => el.style.display = 'none');
+
+  document.getElementById('dash-email').textContent = data.owner.email;
+  document.getElementById('dash-org').textContent = data.owner.org || '';
+  document.getElementById('dash-keyid').textContent = data.owner.owner_key_id;
+
+  const agentsDiv = document.getElementById('dash-agents');
+  if (!data.agents || data.agents.length === 0) {
+    agentsDiv.innerHTML = '<p style="color:var(--muted); text-align:center; padding:20px;">No agents registered yet.</p>';
+  } else {
+    agentsDiv.innerHTML = data.agents.map(a => `
+      <div class="result-item" style="margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; font-size:15px;">${a.display_name}</div>
+            <div style="font-family:var(--mono); font-size:11px; color:var(--accent);">${a.ail_id}</div>
+          </div>
+          <div>
+            <span style="font-size:11px; padding:2px 8px; border-radius:6px;
+                         background:${a.revoked ? 'rgba(239,68,68,0.15);color:var(--red)' : 'rgba(34,197,94,0.15);color:var(--green)'};">
+              ${a.revoked ? 'Revoked' : 'Active'}
+            </span>
+          </div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+          ${a.role} · ${a.provider || '—'} · issued ${new Date(a.issued_at).toLocaleDateString()}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Store owner_key_id for new agent registration
+  loginOwnerKeyId = data.owner.owner_key_id;
+  document.getElementById('step-dashboard').classList.remove('hidden');
+}
+
+function dashboardToRegister() {
+  // User wants to register new agent — they need their private key
+  alert('To register a new agent, you need your Owner Private Key (saved during initial registration).\\n\\nPlease use the New Account flow or re-register with the same email if you lost your key.');
+  // Could implement a flow that asks for private key upload
+  resetForm();
+}
+
 // ── Plan Selection ──
 function selectPlan(plan) {
   selectedPlan = plan;
   document.getElementById('plan-free').classList.toggle('selected', plan === 'free');
-  document.getElementById('plan-pro').classList.toggle('selected', plan === 'pro');
+  document.getElementById('plan-standard').classList.toggle('selected', plan === 'standard');
   document.getElementById('wallet-required-hint').classList.toggle('hidden', plan === 'free');
-  document.getElementById('payment-section').classList.toggle('hidden', plan !== 'pro' || !walletAddress);
+  document.getElementById('payment-section').classList.toggle('hidden', plan !== 'standard' || !walletAddress);
+  // Update payment label
+  if (plan === 'standard') {
+    const label = document.querySelector('#payment-section label');
+    if (label) label.textContent = 'Payment — $2 USDC on Base';
+  }
 }
 
 // ── Wallet Connection ──
@@ -484,8 +679,8 @@ async function updateWalletUI() {
                       chainId === BASE_SEPOLIA_ID ? 'Base Sepolia' : 'Chain ' + parseInt(chainId, 16);
     document.getElementById('wallet-chain-display').textContent = chainName;
 
-    // Show payment section if Pro selected
-    if (selectedPlan === 'pro') {
+    // Show payment section if Standard selected
+    if (selectedPlan === 'standard') {
       document.getElementById('payment-section').classList.remove('hidden');
       document.getElementById('payment-addr').textContent = PAYMENT_RECEIVER;
     }
@@ -506,7 +701,7 @@ async function payWithUSDC() {
 
   try {
     // ERC-20 transfer(address,uint256) function selector
-    const amount = BigInt(PRO_PRICE_USDC) * BigInt(10 ** USDC_DECIMALS);
+    const amount = BigInt(STANDARD_PRICE_USDC) * BigInt(10 ** USDC_DECIMALS);
     const amountHex = amount.toString(16).padStart(64, '0');
     const receiverPadded = PAYMENT_RECEIVER.slice(2).toLowerCase().padStart(64, '0');
     // transfer(address,uint256) = 0xa9059cbb
@@ -543,7 +738,7 @@ async function payWithUSDC() {
     } else {
       showError('step3-error', err.message || 'Payment failed.');
     }
-    btn.disabled = false; btn.textContent = 'Pay $29 USDC';
+    btn.disabled = false; btn.textContent = 'Pay $2 USDC';
   }
 }
 
@@ -567,10 +762,10 @@ async function waitForTx(txHash, maxAttempts = 60) {
 // ── Step 3 → Step 4 ──
 function goToStep4() {
   hideError('step3-error');
-  if (selectedPlan === 'pro' && !walletAddress) {
-    return showError('step3-error', 'Wallet connection is required for Pro plan.');
+  if (selectedPlan === 'standard' && !walletAddress) {
+    return showError('step3-error', 'Wallet connection is required for paid plans.');
   }
-  if (selectedPlan === 'pro' && !paymentComplete) {
+  if (selectedPlan === 'standard' && !paymentComplete) {
     return showError('step3-error', 'Please complete USDC payment to continue.');
   }
   setStep(4);
@@ -592,7 +787,17 @@ async function registerOwner() {
       body: JSON.stringify({ email, org }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Registration failed');
+    if (!res.ok) {
+      if (data.error === 'email_already_verified') {
+        // Auto-switch to login mode
+        document.getElementById('login-email').value = email;
+        setMode('login');
+        showError('step1-error', 'This email is already registered. Switched to Login mode.');
+        btn.disabled = false; btn.textContent = 'Register Owner';
+        return;
+      }
+      throw new Error(data.message || data.error || 'Registration failed');
+    }
 
     ownerData = data;
     document.getElementById('verify-email-display').textContent = email;
@@ -736,12 +941,18 @@ function downloadResult() {
 function resetForm() {
   ownerData = null; agentData = null;
   selectedPlan = 'free'; paymentComplete = false;
+  loginOwnerKeyId = null;
   document.getElementById('email').value = '';
   document.getElementById('org').value = '';
   document.getElementById('otp').value = '';
   document.getElementById('display_name').value = '';
   document.getElementById('model').value = '';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-otp').value = '';
+  document.getElementById('step-login-otp').classList.add('hidden');
+  document.getElementById('step-dashboard').classList.add('hidden');
   selectPlan('free');
+  setMode('register');
   setStep(1);
 }
 
