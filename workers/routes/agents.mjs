@@ -136,6 +136,125 @@ agentsRoutes.post("/agents/register", async (c) => {
 });
 
 /**
+ * POST /agents/register-session
+ *
+ * Register an agent using a session token (from OTP login).
+ * No owner_signature required — session proves ownership.
+ */
+agentsRoutes.post("/agents/register-session", async (c) => {
+  const body = await c.req.json();
+  const { session_token, payload } = body;
+
+  if (!session_token || !payload) {
+    return c.json({ error: "missing_fields", message: "session_token and payload required." }, 400);
+  }
+
+  const db = c.env.DB;
+  const masterKey = c.get("masterKey");
+  if (!masterKey) return c.json({ error: "master_key_not_configured" }, 500);
+
+  // 1. Verify session token
+  const session = await db.prepare(
+    "SELECT owner_id, expires_at FROM owner_sessions WHERE token = ?"
+  ).bind(session_token).first();
+
+  if (!session) return c.json({ error: "invalid_session", message: "Session not found or expired." }, 401);
+  if (new Date(session.expires_at) < new Date()) {
+    return c.json({ error: "session_expired", message: "Session expired. Please login again." }, 401);
+  }
+
+  const owner_key_id = session.owner_id;
+
+  // 2. Get owner info
+  const owner = await db.prepare(
+    "SELECT id, org, email_verified FROM owners WHERE id = ?"
+  ).bind(owner_key_id).first();
+
+  if (!owner) return c.json({ error: "owner_not_found" }, 404);
+  if (!owner.email_verified) return c.json({ error: "email_not_verified" }, 403);
+
+  // 3. Compute derived fields (same as signature-based registration)
+  const ail_id = await nextAilId(db);
+  const { display_name, role, provider = null, model = null, scope } = payload;
+  const owner_org = owner.org ?? null;
+
+  const behavior_fingerprint = await computeBehaviorFingerprint({ role, provider, scope });
+  const signal_glyph = computeGlyphSeed(ail_id, display_name, owner_key_id);
+  const scope_hash = await computeScopeHash(scope);
+
+  // 4. Issue signed JWT
+  const jwtClaims = {
+    ail_id, display_name, role, owner_key_id, owner_org, scope_hash,
+    signal_glyph_seed: signal_glyph.seed,
+    behavior_fingerprint: behavior_fingerprint.hash,
+  };
+
+  const { token, issuedAt, expiresAt } = await issueCredentialJWT(jwtClaims, masterKey);
+  const issuedAtStr = issuedAt.toISOString();
+  const expiresAtStr = expiresAt.toISOString();
+
+  // 5. Generate NFT ID card SVG
+  const agentDataForImage = {
+    ail_id,
+    agent: { display_name, role, provider, model, owner: { org: owner_org } },
+    scope,
+    delegation: null,
+    verification: { signed: true, strength: "cryptographically_signed" },
+    credential: { issued_at: issuedAtStr },
+    owner: { org: owner_org },
+  };
+  const nft_image_svg = generateIdCardSvg(agentDataForImage);
+
+  // 6. Persist
+  await db.prepare(
+    `INSERT INTO agents
+       (ail_id, display_name, role, provider, model,
+        owner_key_id, owner_org, scope_json, scope_hash,
+        signal_glyph_seed, behavior_fingerprint,
+        credential_token, issued_at, expires_at, nft_image_svg)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+  ).bind(
+    ail_id, display_name, role, provider, model,
+    owner_key_id, owner_org, JSON.stringify(scope), scope_hash,
+    signal_glyph.seed, behavior_fingerprint.hash,
+    token, issuedAtStr, expiresAtStr, nft_image_svg
+  ).run();
+
+  console.log(`Registered agent ${ail_id} (${display_name}) for owner ${owner_key_id} via session`);
+
+  // 7. Mint NFT on-chain (non-blocking)
+  let nft = { token_id: null, tx_hash: null };
+  if (isChainEnabled(c.env)) {
+    const baseUrl = c.env.AIL_BASE_URL ?? "";
+    const metadataUri = `${baseUrl}/agents/${ail_id}/metadata`;
+    const chainResult = await mintAgent(c.env, ail_id, null, metadataUri);
+    if (chainResult) {
+      nft = { token_id: chainResult.tokenId, tx_hash: chainResult.txHash };
+      await db.prepare(
+        "UPDATE agents SET nft_token_id = ?, nft_tx_hash = ? WHERE ail_id = ?"
+      ).bind(chainResult.tokenId, chainResult.txHash, ail_id).run();
+    }
+  }
+
+  return c.json({
+    ail_id,
+    credential: {
+      type: "AIL.SignedCredential.v1",
+      issuer: "agentidcard.org",
+      issuer_key_id: masterKey.kid,
+      issued_at: issuedAtStr,
+      expires_at: expiresAtStr,
+      token,
+    },
+    signal_glyph,
+    behavior_fingerprint,
+    nft_image_url: `/agents/${ail_id}/image`,
+    nft_metadata_url: `/agents/${ail_id}/metadata`,
+    ...(nft.token_id && { nft: { token_id: nft.token_id, tx_hash: nft.tx_hash } }),
+  }, 201);
+});
+
+/**
  * DELETE /agents/:ail_id/revoke
  */
 agentsRoutes.delete("/agents/:ail_id/revoke", async (c) => {

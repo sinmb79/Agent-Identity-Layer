@@ -170,6 +170,13 @@ ownersRoutes.post("/owners/verify-login", async (c) => {
 
   await db.prepare("UPDATE owner_otps SET used = 1 WHERE id = ?").bind(record.id).run();
 
+  // Issue session token (valid 24 hours)
+  const sessionToken = randomHex(32);
+  const sessionExpires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  await db.prepare(
+    "INSERT INTO owner_sessions (token, owner_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
+  ).bind(sessionToken, owner_key_id, new Date().toISOString(), sessionExpires).run();
+
   // Fetch owner's agents
   const agents = await db.prepare(
     `SELECT ail_id, display_name, role, provider, model, issued_at, expires_at, revoked
@@ -178,6 +185,7 @@ ownersRoutes.post("/owners/verify-login", async (c) => {
 
   return c.json({
     authenticated: true,
+    session_token: sessionToken,
     owner: {
       owner_key_id: owner.id,
       email: owner.email,

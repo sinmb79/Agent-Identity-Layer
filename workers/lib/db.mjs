@@ -59,6 +59,14 @@ export async function initSchema(db) {
         next_seq INTEGER NOT NULL DEFAULT 1
       )
     `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS owner_sessions (
+        token      TEXT PRIMARY KEY,
+        owner_id   TEXT NOT NULL REFERENCES owners(id),
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL
+      )
+    `),
   ]);
 
   _initialized = true;
