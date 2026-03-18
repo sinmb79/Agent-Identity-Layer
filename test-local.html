@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent ID Card — Register Agent</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #161b25; --border: #1e2535;
+      --accent: #4f8ef7; --accent-dim: #2a4a8a;
+      --green: #22c55e; --red: #ef4444; --yellow: #eab308;
+      --orange: #f97316;
+      --text: #e2e8f0; --muted: #64748b;
+      --font: "Inter", system-ui, sans-serif;
+      --mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font);
+           font-size: 14px; line-height: 1.6; min-height: 100vh;
+           display: flex; flex-direction: column; align-items: center; }
+
+    .top-bar { width: 100%; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+    .top-bar a { color: var(--muted); text-decoration: none; font-size: 13px; }
+    .top-bar a:hover { color: var(--text); }
+    .logo { font-weight: 800; font-size: 16px; color: var(--text); }
+    .logo span { color: var(--accent); }
+
+    .container { width: 100%; max-width: 560px; padding: 0 20px; margin-top: 40px; }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+    .subtitle { color: var(--muted); text-align: center; margin-bottom: 36px; font-size: 14px; }
+
+    /* Steps */
+    .steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 36px; }
+    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+    .step-dot.active { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .step-dot.done { background: var(--green); }
+
+    .step-label { text-align: center; color: var(--muted); font-size: 12px; font-weight: 600;
+                  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px; }
+
+    /* Card */
+    .card { background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 32px; }
+
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--muted);
+            margin-bottom: 6px; margin-top: 16px; }
+    label:first-child { margin-top: 0; }
+
+    input, select, textarea {
+      width: 100%; padding: 10px 14px; background: var(--bg);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: var(--font); font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    select { cursor: pointer; }
+    textarea { resize: vertical; min-height: 60px; font-family: var(--mono); font-size: 12px; }
+
+    .otp-group { display: flex; gap: 8px; }
+    .otp-group input { text-align: center; font-family: var(--mono); font-size: 20px; letter-spacing: 0.2em; }
+
+    .btn { padding: 12px 24px; background: var(--accent); color: #fff; border: none;
+           border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+           width: 100%; margin-top: 24px; transition: all 0.2s; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); background: rgba(79,142,247,0.05); }
+    .btn-wallet { background: var(--orange); }
+    .btn-wallet:hover { background: #ea580c; }
+
+    .error { color: var(--red); font-size: 13px; margin-top: 12px; text-align: center; }
+    .success { color: var(--green); font-size: 13px; margin-top: 12px; text-align: center; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+    .hidden { display: none !important; }
+
+    /* Result card */
+    .result-section { margin-top: 16px; }
+    .result-item { background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+                   padding: 14px; margin-top: 12px; }
+    .result-item .label { font-size: 11px; color: var(--muted); text-transform: uppercase;
+                          letter-spacing: 0.05em; margin-bottom: 4px; }
+    .result-item .value { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+    .result-item .value.big { font-size: 22px; font-weight: 800; color: var(--accent); }
+    .copy-btn { float: right; background: none; border: 1px solid var(--border); color: var(--muted);
+                border-radius: 6px; padding: 2px 10px; font-size: 11px; cursor: pointer; }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .glyph-preview { text-align: center; margin-top: 16px; }
+    .glyph-preview img { width: 100%; max-width: 400px; height: auto; border-radius: 16px;
+                         border: 2px solid var(--border); }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+    .scope-grid label { margin: 0; display: flex; align-items: center; gap: 6px;
+                        font-weight: 400; color: var(--text); cursor: pointer; }
+    .scope-grid input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+
+    /* Plan selector */
+    .plan-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .plan-card { background: var(--bg); border: 2px solid var(--border); border-radius: 12px;
+                 padding: 16px; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .plan-card:hover { border-color: var(--accent); }
+    .plan-card.selected { border-color: var(--accent); background: rgba(79,142,247,0.08); }
+    .plan-card .plan-name { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .plan-card .plan-price { font-size: 24px; font-weight: 800; }
+    .plan-card .plan-price small { font-size: 12px; font-weight: 400; color: var(--muted); }
+    .plan-card .plan-desc { font-size: 11px; color: var(--muted); margin-top: 6px; }
+    .plan-card .plan-badge { display: inline-block; font-size: 10px; font-weight: 700;
+                             background: var(--accent); color: #fff; padding: 2px 8px;
+                             border-radius: 10px; margin-bottom: 6px; }
+
+    /* Wallet */
+    .wallet-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+                  padding: 16px; margin-top: 16px; }
+    .wallet-connected { display: flex; align-items: center; gap: 10px; }
+    .wallet-addr { font-family: var(--mono); font-size: 13px; color: var(--green); }
+    .wallet-chain { font-size: 11px; color: var(--muted); }
+    .wallet-icon { width: 24px; height: 24px; }
+
+    /* Payment status */
+    .payment-status { text-align: center; padding: 16px; margin-top: 16px; border-radius: 10px; }
+    .payment-status.pending { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); color: var(--yellow); }
+    .payment-status.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+
+    @media (max-width: 480px) {
+      .container { margin-top: 20px; }
+      .card { padding: 20px; }
+      h1 { font-size: 22px; }
+      .plan-cards { grid-template-columns: 1fr; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">Agent ID <span>Card</span></div>
+  <div style="flex:1"></div>
+  <a href="/">Home</a>
+  <a href="/#solution">Docs</a>
+  <div id="wallet-top" class="hidden" style="display:none;">
+    <span class="wallet-addr" id="wallet-top-addr" style="font-size:11px;"></span>
+  </div>
+</div>
+
+<div class="container">
+  <h1>Register Your Agent</h1>
+  <p class="subtitle">Get a signed identity credential for your AI agent in 4 steps.</p>
+
+  <!-- Step dots -->
+  <div class="steps">
+    <div class="step-dot active" id="dot-1"></div>
+    <div class="step-dot" id="dot-2"></div>
+    <div class="step-dot" id="dot-3"></div>
+    <div class="step-dot" id="dot-4"></div>
+  </div>
+
+  <!-- ═══ STEP 1: Owner Registration / Login ═══ -->
+  <div id="step-1">
+    <!-- Mode toggle -->
+    <div style="display:flex; justify-content:center; gap:4px; margin-bottom:20px;
+                background:var(--surface); border-radius:10px; padding:4px; border:1px solid var(--border);">
+      <button id="mode-register" onclick="setMode('register')"
+              style="flex:1; padding:8px 16px; border-radius:8px; border:none; font-size:13px; font-weight:600;
+                     cursor:pointer; transition:all 0.2s; background:var(--accent); color:#fff;">
+        New Account
+      </button>
+      <button id="mode-login" onclick="setMode('login')"
+              style="flex:1; padding:8px 16px; border-radius:8px; border:none; font-size:13px; font-weight:600;
+                     cursor:pointer; transition:all 0.2s; background:transparent; color:var(--muted);">
+        Login
+      </button>
+    </div>
+
+    <!-- Register mode -->
+    <div id="form-register">
+      <div class="step-label">Step 1 — Owner Registration</div>
+      <div class="card">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+        <p class="hint">We'll send a verification code to this address.</p>
+
+        <label for="org">Organization (optional)</label>
+        <input type="text" id="org" placeholder="your_company">
+
+        <button class="btn" id="btn-register" onclick="registerOwner()">Register Owner</button>
+        <div id="step1-error" class="error hidden"></div>
+        <div id="step1-success" class="success hidden"></div>
+      </div>
+    </div>
+
+    <!-- Login mode -->
+    <div id="form-login" class="hidden">
+      <div class="step-label">Login — Existing Owner</div>
+      <div class="card">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+        <p class="hint">We'll send a login code to your registered email.</p>
+
+        <button class="btn" id="btn-login" onclick="loginOwner()">Send Login Code</button>
+        <div id="login-error" class="error hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP LOGIN-OTP: Login verification ═══ -->
+  <div id="step-login-otp" class="hidden">
+    <div class="step-label">Login — Enter Verification Code</div>
+    <div class="card">
+      <p style="color:var(--muted); text-align:center; margin-bottom:16px;">
+        Enter the 6-digit code sent to <strong id="login-email-display" style="color:var(--text)"></strong>
+      </p>
+      <div class="otp-group">
+        <input type="text" id="login-otp" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+      </div>
+      <button class="btn" id="btn-verify-login" onclick="verifyLogin()">Verify & Login</button>
+      <div id="login-otp-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP DASHBOARD: Logged-in owner dashboard ═══ -->
+  <div id="step-dashboard" class="hidden">
+    <div class="step-label" style="color:var(--green);">Welcome Back</div>
+    <div class="card">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div style="font-size:18px; font-weight:700;" id="dash-email"></div>
+        <div style="font-size:12px; color:var(--muted);" id="dash-org"></div>
+        <div style="font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:4px;" id="dash-keyid"></div>
+      </div>
+
+      <div class="divider"></div>
+      <label style="margin-top:0;">Your Agents</label>
+      <div id="dash-agents" style="margin-top:8px;"></div>
+
+      <!-- Agent ID Card detail (shown when clicking an agent) -->
+      <div id="dash-agent-detail" class="hidden" style="margin-top:16px;">
+        <div class="divider"></div>
+        <div class="glyph-preview">
+          <img id="dash-agent-card-img" src="" alt="Agent ID Card" style="width:100%;max-width:400px;height:auto;border-radius:16px;border:2px solid var(--border);">
+        </div>
+        <button class="btn btn-outline" style="margin-top:8px;" onclick="document.getElementById('dash-agent-detail').classList.add('hidden')">Close</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Register New Agent -->
+      <button class="btn" style="margin-top:0;" onclick="dashboardToRegister()">Register New Agent</button>
+
+      <button class="btn btn-outline" style="margin-top:12px;" onclick="resetForm()">Logout</button>
+      <a href="/" class="btn btn-outline" style="margin-top:8px; display:block; text-align:center; text-decoration:none; color:var(--text);">Go Home</a>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2: Email Verification ═══ -->
+  <div id="step-2" class="hidden">
+    <div class="step-label">Step 2 — Email Verification</div>
+    <div class="card">
+      <p style="color:var(--muted); text-align:center; margin-bottom:16px;">
+        Enter the 6-digit code sent to <strong id="verify-email-display" style="color:var(--text)"></strong>
+      </p>
+      <div class="otp-group">
+        <input type="text" id="otp" maxlength="6" placeholder="000000" autocomplete="one-time-code">
+      </div>
+      <button class="btn" id="btn-verify" onclick="verifyEmail()">Verify</button>
+      <div id="step2-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3: Plan & Wallet ═══ -->
+  <div id="step-3" class="hidden">
+    <div class="step-label">Step 3 — Choose Plan & Connect Wallet</div>
+    <div class="card">
+
+      <label style="margin-top:0">Select Plan</label>
+      <div class="plan-cards">
+        <div class="plan-card selected" onclick="selectPlan('free')" id="plan-free">
+          <div class="plan-name">Free</div>
+          <div class="plan-price">$0</div>
+          <div class="plan-desc">First agent free<br>JWT + NFT</div>
+        </div>
+        <div class="plan-card" onclick="selectPlan('standard')" id="plan-standard">
+          <div class="plan-badge">PAY PER AGENT</div>
+          <div class="plan-name">Standard</div>
+          <div class="plan-price">$2<small> USDC</small></div>
+          <div class="plan-desc">Per additional agent<br>JWT + NFT</div>
+        </div>
+      </div>
+      <p class="hint" style="text-align:center; margin-top:8px;">
+        Need 20+ agents? <strong style="color:var(--green);">Bulk: $30 USDC for 20 agents ($1.50 each)</strong>
+      </p>
+
+      <!-- Wallet section -->
+      <div class="divider"></div>
+      <label style="margin-top:0">Wallet Connection</label>
+
+      <div id="wallet-not-connected">
+        <p class="hint" style="margin-bottom:12px;">
+          Connect your wallet to receive NFT ID cards and pay with crypto.
+          <span id="wallet-required-hint" class="hidden" style="color:var(--yellow);font-weight:600;"> (Required for Pro plan)</span>
+        </p>
+        <button class="btn btn-wallet" id="btn-connect-wallet" onclick="connectWallet()" style="margin-top:0;">
+          🦊 Connect MetaMask
+        </button>
+        <p class="hint" style="margin-top:8px; text-align:center;">
+          Don't have MetaMask? <a href="https://metamask.io/download/" target="_blank" style="color:var(--accent);">Install here</a>
+        </p>
+      </div>
+
+      <div id="wallet-connected" class="wallet-box hidden">
+        <div class="wallet-connected">
+          <div>
+            <div class="wallet-addr" id="wallet-address-display"></div>
+            <div class="wallet-chain" id="wallet-chain-display"></div>
+          </div>
+          <button class="copy-btn" onclick="disconnectWallet()" style="margin-left:auto;">Disconnect</button>
+        </div>
+      </div>
+
+      <!-- Pro payment section -->
+      <div id="payment-section" class="hidden">
+        <div class="divider"></div>
+        <label style="margin-top:0">Payment — $2 USDC on Base</label>
+        <p class="hint" style="margin-bottom:12px;">
+          Pay $2 USDC per agent on Base network. Make sure you have enough USDC and ETH for gas.
+        </p>
+        <div class="result-item" style="margin-top:0;">
+          <div class="label">Payment Address</div>
+          <div class="value" id="payment-addr" style="font-size:12px;"></div>
+        </div>
+        <button class="btn" id="btn-pay" onclick="payWithUSDC()" style="margin-top:12px;">
+          Pay $2 USDC
+        </button>
+        <div id="payment-status-box" class="hidden"></div>
+      </div>
+
+      <button class="btn" id="btn-step3-next" onclick="goToStep4()" style="margin-top:20px;">
+        Continue
+      </button>
+      <div id="step3-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 4: Agent Details ═══ -->
+  <div id="step-4" class="hidden">
+    <div class="step-label">Step 4 — Agent Details</div>
+    <div class="card">
+      <label for="display_name">Agent Display Name</label>
+      <input type="text" id="display_name" placeholder="MyAssistant">
+
+      <label for="role">Role</label>
+      <select id="role">
+        <option value="assistant">Assistant</option>
+        <option value="coding">Coding</option>
+        <option value="research">Research</option>
+        <option value="automation">Automation</option>
+        <option value="customer_service">Customer Service</option>
+        <option value="other">Other</option>
+      </select>
+
+      <label for="provider">Provider</label>
+      <select id="provider">
+        <option value="anthropic">Anthropic</option>
+        <option value="openai">OpenAI</option>
+        <option value="google">Google</option>
+        <option value="meta">Meta</option>
+        <option value="custom">Custom / Self-hosted</option>
+      </select>
+
+      <label for="model">Model (optional)</label>
+      <input type="text" id="model" placeholder="claude-sonnet-4-6">
+
+      <div class="divider"></div>
+      <label style="margin-top:0">Scope &amp; Permissions</label>
+      <div class="scope-grid">
+        <label><input type="checkbox" id="scope-network"> Network Access</label>
+        <label><input type="checkbox" id="scope-write"> Write Access</label>
+        <label><input type="checkbox" id="scope-secrets"> Secrets Access</label>
+        <label><input type="checkbox" checked id="scope-human"> Human-in-the-loop</label>
+      </div>
+
+      <button class="btn" id="btn-create" onclick="createAgent()">Issue Credential</button>
+      <div id="step4-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- ═══ RESULT ═══ -->
+  <div id="step-result" class="hidden">
+    <div class="step-label" style="color:var(--green);">Registration Complete</div>
+    <div class="card">
+      <div class="result-section">
+        <div class="result-item">
+          <div class="label">AIL ID</div>
+          <div class="value big" id="res-ail-id"></div>
+        </div>
+
+        <div class="glyph-preview">
+          <img id="res-glyph" src="" alt="Signal Glyph">
+          <p class="hint" style="margin-top:8px">Agent ID Card — your agent's unique identity</p>
+        </div>
+
+        <div id="res-nft-section" class="hidden">
+          <div class="result-item">
+            <div class="label">NFT Token ID</div>
+            <div class="value" id="res-nft-token"></div>
+          </div>
+          <div class="result-item">
+            <div class="label">NFT Transaction <button class="copy-btn" onclick="copyText('res-nft-tx')">Copy</button></div>
+            <div class="value" id="res-nft-tx" style="font-size:11px;"></div>
+          </div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">JWT Credential <button class="copy-btn" onclick="copyText('res-token')">Copy</button></div>
+          <div class="value" id="res-token" style="max-height:80px;overflow:auto;font-size:11px;"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Behavior Fingerprint</div>
+          <div class="value" id="res-fingerprint"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Owner Key ID <button class="copy-btn" onclick="copyText('res-owner-key')">Copy</button></div>
+          <div class="value" id="res-owner-key"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Private Key (save securely!) <button class="copy-btn" onclick="copyText('res-private-key')">Copy</button></div>
+          <div class="value" id="res-private-key" style="max-height:80px;overflow:auto;font-size:11px;color:var(--yellow);"></div>
+          <p class="hint" style="color:var(--yellow);">This private key will NOT be shown again. Save it now.</p>
+        </div>
+      </div>
+
+      <button class="btn btn-outline" style="margin-top:24px" onclick="downloadResult()">Download Credentials (JSON)</button>
+      <button class="btn btn-outline" style="margin-top:8px" onclick="resetForm()">Register Another Agent</button>
+      <a href="/" class="btn btn-outline" style="margin-top:8px; display:block; text-align:center; text-decoration:none; color:var(--text);">Go Home</a>
+    </div>
+  </div>
+
+  <div style="height:60px"></div>
+</div>
+
+<script>
+const API = 'https://api.agentidcard.org';
+const TOTAL_STEPS = 4;
+
+// Base network config
+const BASE_CHAIN_ID = '0x2105';       // Base mainnet 8453
+const BASE_SEPOLIA_ID = '0x14a34';    // Base Sepolia 84532
+const TARGET_CHAIN_ID = BASE_SEPOLIA_ID; // Switch to BASE_CHAIN_ID for mainnet
+
+// USDC contract on Base Sepolia (use real Base mainnet USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
+const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia USDC
+const USDC_DECIMALS = 6;
+const STANDARD_PRICE_USDC = 2;
+const PAYMENT_RECEIVER = '0x4eeAD61dF800fcfA7a9F698f811a855389F74b6C'; // Your receiver address
+
+let ownerData = null;
+let agentData = null;
+let selectedPlan = 'free';
+let walletAddress = null;
+let paymentComplete = false;
+let currentMode = 'register'; // 'register' or 'login'
+let loginOwnerKeyId = null;
+let sessionToken = null; // session token from OTP login
+
+// ── UI Helpers ──
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.remove('hidden');
+}
+function hideError(id) { document.getElementById(id).classList.add('hidden'); }
+
+function setStep(n) {
+  // Hide login-related panels
+  document.getElementById('step-login-otp').classList.add('hidden');
+  document.getElementById('step-dashboard').classList.add('hidden');
+  document.querySelectorAll('.steps').forEach(el => el.style.display = 'flex');
+
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const el = document.getElementById('step-' + i);
+    if (el) el.classList.toggle('hidden', i !== n);
+    const dot = document.getElementById('dot-' + i);
+    if (dot) { dot.classList.toggle('active', i === n); dot.classList.toggle('done', i < n); }
+  }
+  document.getElementById('step-result').classList.add('hidden');
+}
+
+// ── Mode Toggle ──
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('form-register').classList.toggle('hidden', mode !== 'register');
+  document.getElementById('form-login').classList.toggle('hidden', mode !== 'login');
+  document.getElementById('mode-register').style.background = mode === 'register' ? 'var(--accent)' : 'transparent';
+  document.getElementById('mode-register').style.color = mode === 'register' ? '#fff' : 'var(--muted)';
+  document.getElementById('mode-login').style.background = mode === 'login' ? 'var(--accent)' : 'transparent';
+  document.getElementById('mode-login').style.color = mode === 'login' ? '#fff' : 'var(--muted)';
+}
+
+// ── Login ──
+async function loginOwner() {
+  hideError('login-error');
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) return showError('login-error', 'Email is required.');
+
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; btn.textContent = 'Sending...';
+
+  try {
+    const res = await fetch(API + '/owners/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || 'Login failed');
+
+    loginOwnerKeyId = data.owner_key_id;
+    document.getElementById('login-email-display').textContent = email;
+
+    // Show login OTP step
+    document.getElementById('step-1').classList.add('hidden');
+    document.getElementById('step-login-otp').classList.remove('hidden');
+  } catch (e) {
+    showError('login-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Login Code';
+  }
+}
+
+async function verifyLogin() {
+  hideError('login-otp-error');
+  const otp = document.getElementById('login-otp').value.trim();
+  if (!otp) return showError('login-otp-error', 'Enter the verification code.');
+
+  const btn = document.getElementById('btn-verify-login');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  try {
+    const res = await fetch(API + '/owners/verify-login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ owner_key_id: loginOwnerKeyId, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || 'Verification failed');
+
+    // Save session token
+    sessionToken = data.session_token;
+
+    // Show dashboard
+    showDashboard(data);
+  } catch (e) {
+    showError('login-otp-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify & Login';
+  }
+}
+
+function showDashboard(data) {
+  // Hide all other steps
+  document.getElementById('step-1').classList.add('hidden');
+  document.getElementById('step-login-otp').classList.add('hidden');
+  document.querySelectorAll('.steps').forEach(el => el.style.display = 'none');
+
+  document.getElementById('dash-email').textContent = data.owner.email;
+  document.getElementById('dash-org').textContent = data.owner.org || '';
+  document.getElementById('dash-keyid').textContent = data.owner.owner_key_id;
+
+  const agentsDiv = document.getElementById('dash-agents');
+  if (!data.agents || data.agents.length === 0) {
+    agentsDiv.innerHTML = '<p style="color:var(--muted); text-align:center; padding:20px;">No agents registered yet.</p>';
+  } else {
+    agentsDiv.innerHTML = data.agents.map(a => `
+      <div class="result-item" style="margin-top:8px; cursor:pointer;" onclick="showAgentCard('${a.ail_id}')">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; font-size:15px;">${a.display_name}</div>
+            <div style="font-family:var(--mono); font-size:11px; color:var(--accent);">${a.ail_id}</div>
+          </div>
+          <div>
+            <span style="font-size:11px; padding:2px 8px; border-radius:6px;
+                         background:${a.revoked ? 'rgba(239,68,68,0.15);color:var(--red)' : 'rgba(34,197,94,0.15);color:var(--green)'};">
+              ${a.revoked ? 'Revoked' : 'Active'}
+            </span>
+          </div>
+        </div>
+        <div style="font-size:11px; color:var(--muted); margin-top:4px;">
+          ${a.role} · ${a.provider || '—'} · issued ${new Date(a.issued_at).toLocaleDateString()}
+          <span style="float:right; color:var(--accent);">View ID Card →</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Store owner_key_id for new agent registration
+  loginOwnerKeyId = data.owner.owner_key_id;
+  document.getElementById('step-dashboard').classList.remove('hidden');
+}
+
+function showAgentCard(ailId) {
+  const img = document.getElementById('dash-agent-card-img');
+  img.src = API + '/agents/' + ailId + '/image';
+  document.getElementById('dash-agent-detail').classList.remove('hidden');
+  img.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function dashboardToRegister() {
+  if (!sessionToken) {
+    alert('Session expired. Please login again.');
+    resetForm();
+    return;
+  }
+  // Set ownerData for session-based flow
+  ownerData = { owner_key_id: loginOwnerKeyId, _useSession: true };
+
+  // Hide dashboard, show Step 3
+  document.getElementById('step-dashboard').classList.add('hidden');
+  document.querySelectorAll('.steps').forEach(el => el.style.display = 'flex');
+  setStep(3);
+}
+
+// ── Plan Selection ──
+function selectPlan(plan) {
+  selectedPlan = plan;
+  document.getElementById('plan-free').classList.toggle('selected', plan === 'free');
+  document.getElementById('plan-standard').classList.toggle('selected', plan === 'standard');
+  document.getElementById('wallet-required-hint').classList.toggle('hidden', plan === 'free');
+  document.getElementById('payment-section').classList.toggle('hidden', plan !== 'standard' || !walletAddress);
+  updateContinueButton();
+}
+
+function updateContinueButton() {
+  const btn = document.getElementById('btn-step3-next');
+  if (selectedPlan === 'standard' && !paymentComplete) {
+    btn.disabled = true;
+    btn.textContent = walletAddress ? 'Complete payment to continue' : 'Connect wallet & pay to continue';
+    btn.style.opacity = '0.4';
+  } else {
+    btn.disabled = false;
+    btn.textContent = 'Continue';
+    btn.style.opacity = '1';
+  }
+}
+
+// ── Wallet Connection ──
+async function connectWallet() {
+  // Check for MetaMask or any injected provider
+  const provider = window.ethereum;
+  if (!provider) {
+    showError('step3-error', 'MetaMask is not installed. Please install MetaMask first.');
+    window.open('https://metamask.io/download/', '_blank');
+    return;
+  }
+
+  const btn = document.getElementById('btn-connect-wallet');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+
+  try {
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No accounts returned. Please unlock MetaMask.');
+    }
+    walletAddress = accounts[0];
+
+    // Switch to Base network
+    try {
+      await provider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: TARGET_CHAIN_ID }],
+      });
+    } catch (switchError) {
+      // Chain not added (4902) or unrecognized chain
+      if (switchError.code === 4902 || switchError.code === -32603) {
+        await provider.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: TARGET_CHAIN_ID,
+            chainName: TARGET_CHAIN_ID === BASE_CHAIN_ID ? 'Base' : 'Base Sepolia',
+            nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+            rpcUrls: [TARGET_CHAIN_ID === BASE_CHAIN_ID
+              ? 'https://mainnet.base.org'
+              : 'https://sepolia.base.org'],
+            blockExplorerUrls: [TARGET_CHAIN_ID === BASE_CHAIN_ID
+              ? 'https://basescan.org'
+              : 'https://sepolia.basescan.org'],
+          }],
+        });
+      } else if (switchError.code === 4001) {
+        // User rejected chain switch — still connected, just on wrong chain
+        showError('step3-error', 'Please switch to Base network in MetaMask to proceed.');
+      }
+    }
+
+    updateWalletUI();
+
+    // Listen for account/chain changes
+    provider.on('accountsChanged', (accs) => {
+      walletAddress = accs[0] || null;
+      updateWalletUI();
+    });
+    provider.on('chainChanged', () => updateWalletUI());
+
+  } catch (err) {
+    console.error('Wallet connection failed:', err);
+    if (err.code === 4001) {
+      showError('step3-error', 'Connection rejected. Check if MetaMask popup appeared behind this window. Click the MetaMask extension icon in your browser toolbar and approve the connection.');
+    } else if (err.code === -32002) {
+      showError('step3-error', 'MetaMask is already processing a request. Click the MetaMask icon in your browser toolbar to respond to the pending request.');
+    } else {
+      showError('step3-error', 'Wallet connection failed: ' + (err.message || 'Unknown error'));
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = '🦊 Connect MetaMask';
+  }
+}
+
+function disconnectWallet() {
+  walletAddress = null;
+  paymentComplete = false;
+  updateWalletUI();
+}
+
+async function updateWalletUI() {
+  const notConnected = document.getElementById('wallet-not-connected');
+  const connected = document.getElementById('wallet-connected');
+  const topWallet = document.getElementById('wallet-top');
+
+  if (walletAddress) {
+    notConnected.classList.add('hidden');
+    connected.classList.remove('hidden');
+    topWallet.style.display = 'block';
+
+    const short = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
+    document.getElementById('wallet-address-display').textContent = short;
+    document.getElementById('wallet-top-addr').textContent = short;
+
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const chainName = chainId === BASE_CHAIN_ID ? 'Base' :
+                      chainId === BASE_SEPOLIA_ID ? 'Base Sepolia' : 'Chain ' + parseInt(chainId, 16);
+    document.getElementById('wallet-chain-display').textContent = chainName;
+
+    // Show payment section if Standard selected
+    if (selectedPlan === 'standard') {
+      document.getElementById('payment-section').classList.remove('hidden');
+      document.getElementById('payment-addr').textContent = PAYMENT_RECEIVER;
+    }
+    updateContinueButton();
+  } else {
+    notConnected.classList.remove('hidden');
+    connected.classList.add('hidden');
+    topWallet.style.display = 'none';
+    document.getElementById('payment-section').classList.add('hidden');
+  }
+}
+
+// ── USDC Payment ──
+async function payWithUSDC() {
+  if (!walletAddress) return showError('step3-error', 'Connect your wallet first.');
+
+  const btn = document.getElementById('btn-pay');
+  btn.disabled = true; btn.textContent = 'Processing...';
+
+  try {
+    // ERC-20 transfer(address,uint256) function selector
+    const amount = BigInt(STANDARD_PRICE_USDC) * BigInt(10 ** USDC_DECIMALS);
+    const amountHex = amount.toString(16).padStart(64, '0');
+    const receiverPadded = PAYMENT_RECEIVER.slice(2).toLowerCase().padStart(64, '0');
+    // transfer(address,uint256) = 0xa9059cbb
+    const data = '0xa9059cbb' + receiverPadded + amountHex;
+
+    const txHash = await window.ethereum.request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: walletAddress,
+        to: USDC_ADDRESS,
+        data: data,
+        // gas will be estimated by MetaMask
+      }],
+    });
+
+    // Show pending
+    const statusBox = document.getElementById('payment-status-box');
+    statusBox.className = 'payment-status pending';
+    statusBox.innerHTML = 'Transaction sent! Waiting for confirmation...<br><span style="font-family:var(--mono);font-size:11px;">' + txHash + '</span>';
+    statusBox.classList.remove('hidden');
+
+    // Poll for confirmation
+    const confirmed = await waitForTx(txHash);
+    if (confirmed) {
+      paymentComplete = true;
+      statusBox.className = 'payment-status success';
+      statusBox.innerHTML = 'Payment confirmed! You can now proceed.';
+      btn.textContent = 'Paid';
+      updateContinueButton();
+    }
+  } catch (err) {
+    if (err.code === 4001) {
+      // User rejected
+      showError('step3-error', 'Transaction cancelled by user.');
+    } else {
+      showError('step3-error', err.message || 'Payment failed.');
+    }
+    btn.disabled = false; btn.textContent = 'Pay $2 USDC';
+  }
+}
+
+async function waitForTx(txHash, maxAttempts = 60) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const receipt = await window.ethereum.request({
+        method: 'eth_getTransactionReceipt',
+        params: [txHash],
+      });
+      if (receipt && receipt.status === '0x1') return true;
+      if (receipt && receipt.status === '0x0') throw new Error('Transaction reverted');
+    } catch (e) {
+      if (e.message === 'Transaction reverted') throw e;
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  return false;
+}
+
+// ── Step 3 → Step 4 ──
+function goToStep4() {
+  hideError('step3-error');
+  if (selectedPlan === 'standard' && !walletAddress) {
+    return showError('step3-error', 'Wallet connection is required for paid plans.');
+  }
+  if (selectedPlan === 'standard' && !paymentComplete) {
+    return showError('step3-error', 'Please complete USDC payment to continue.');
+  }
+  setStep(4);
+}
+
+// ── Step 1: Register Owner ──
+async function registerOwner() {
+  hideError('step1-error');
+  const email = document.getElementById('email').value.trim();
+  const org = document.getElementById('org').value.trim() || undefined;
+  if (!email) return showError('step1-error', 'Email is required.');
+
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = 'Registering...';
+
+  try {
+    const res = await fetch(API + '/owners/register', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, org }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      if (data.error === 'email_already_verified') {
+        // Auto-switch to login mode
+        document.getElementById('login-email').value = email;
+        setMode('login');
+        showError('step1-error', 'This email is already registered. Switched to Login mode.');
+        btn.disabled = false; btn.textContent = 'Register Owner';
+        return;
+      }
+      throw new Error(data.message || data.error || 'Registration failed');
+    }
+
+    ownerData = data;
+    document.getElementById('verify-email-display').textContent = email;
+    setStep(2);
+  } catch (e) {
+    showError('step1-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Register Owner';
+  }
+}
+
+// ── Step 2: Verify Email ──
+async function verifyEmail() {
+  hideError('step2-error');
+  const otp = document.getElementById('otp').value.trim();
+  if (!otp) return showError('step2-error', 'Enter the verification code.');
+
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  try {
+    const res = await fetch(API + '/owners/verify-email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ owner_key_id: ownerData.owner_key_id, otp }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Verification failed');
+    setStep(3);
+  } catch (e) {
+    showError('step2-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify';
+  }
+}
+
+// ── Step 4: Create Agent ──
+async function createAgent() {
+  hideError('step4-error');
+  const display_name = document.getElementById('display_name').value.trim();
+  if (!display_name) return showError('step4-error', 'Display name is required.');
+
+  const role = document.getElementById('role').value;
+  const provider = document.getElementById('provider').value;
+  const model = document.getElementById('model').value.trim() || undefined;
+
+  const network = document.getElementById('scope-network').checked ? 'restricted' : 'none';
+  const write_access = document.getElementById('scope-write').checked;
+  const secrets = document.getElementById('scope-secrets').checked ? 'env_only' : 'none';
+  const humanLoop = document.getElementById('scope-human').checked;
+
+  const payload = {
+    display_name, role, provider, model,
+    scope: {
+      network, secrets, write_access,
+      approval_policy: humanLoop ? {
+        irreversible_actions: 'human_required',
+        external_posting: 'human_required',
+        destructive_file_ops: 'human_required',
+      } : {
+        irreversible_actions: 'auto',
+        external_posting: 'auto',
+        destructive_file_ops: 'auto',
+      },
+    },
+    // Pass wallet address and plan for NFT minting
+    ...(walletAddress && { wallet_address: walletAddress }),
+    plan: selectedPlan,
+  };
+
+  const btn = document.getElementById('btn-create');
+  btn.disabled = true; btn.textContent = 'Issuing credential...';
+
+  try {
+    let res;
+
+    if (sessionToken && ownerData._useSession) {
+      // Session-based registration (logged-in user adding more agents)
+      res = await fetch(API + '/agents/register-session', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_token: sessionToken, payload }),
+      });
+    } else {
+      // Signature-based registration (new user with private key)
+      const payloadBytes = new TextEncoder().encode(canonicalJson(payload));
+      const privateKey = await importPrivateKey(ownerData.private_key_jwk);
+      const sigBuf = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privateKey, payloadBytes);
+      const owner_signature = bufToBase64url(new Uint8Array(sigBuf));
+
+      res = await fetch(API + '/agents/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ owner_key_id: ownerData.owner_key_id, owner_signature, payload }),
+      });
+    }
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || data.message || 'Agent registration failed');
+
+    agentData = data;
+    showResult(data);
+  } catch (e) {
+    showError('step4-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Issue Credential';
+  }
+}
+
+function showResult(data) {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const el = document.getElementById('step-' + i);
+    if (el) el.classList.add('hidden');
+  }
+  document.querySelectorAll('.step-dot').forEach(d => d.classList.add('done'));
+
+  document.getElementById('res-ail-id').textContent = data.ail_id;
+  document.getElementById('res-token').textContent = data.credential?.token || '—';
+  // behavior_fingerprint is an object with .hash property
+  const fp = data.behavior_fingerprint;
+  document.getElementById('res-fingerprint').textContent =
+    typeof fp === 'string' ? fp : (fp?.hash || JSON.stringify(fp) || '—');
+  document.getElementById('res-owner-key').textContent = ownerData.owner_key_id;
+  document.getElementById('res-private-key').textContent = JSON.stringify(ownerData.private_key_jwk);
+
+  // Load the ID card image from the server
+  if (data.nft_image_url) {
+    document.getElementById('res-glyph').src = API + data.nft_image_url;
+  } else if (data.signal_glyph?.svg_data_uri) {
+    document.getElementById('res-glyph').src = data.signal_glyph.svg_data_uri;
+  }
+
+  // NFT info
+  if (data.nft?.token_id) {
+    document.getElementById('res-nft-section').classList.remove('hidden');
+    document.getElementById('res-nft-token').textContent = data.nft.token_id;
+    document.getElementById('res-nft-tx').textContent = data.nft.tx_hash || '—';
+  }
+
+  document.getElementById('step-result').classList.remove('hidden');
+}
+
+function downloadResult() {
+  const blob = new Blob([JSON.stringify({
+    ail_id: agentData.ail_id,
+    credential: agentData.credential,
+    signal_glyph: agentData.signal_glyph,
+    behavior_fingerprint: agentData.behavior_fingerprint,
+    nft: agentData.nft || null,
+    wallet_address: walletAddress,
+    plan: selectedPlan,
+    owner_key_id: ownerData.owner_key_id,
+    private_key_jwk: ownerData.private_key_jwk,
+  }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (agentData.ail_id || 'agent') + '-credentials.json';
+  a.click();
+}
+
+function resetForm() {
+  ownerData = null; agentData = null;
+  selectedPlan = 'free'; paymentComplete = false;
+  loginOwnerKeyId = null; sessionToken = null;
+  document.getElementById('email').value = '';
+  document.getElementById('org').value = '';
+  document.getElementById('otp').value = '';
+  document.getElementById('display_name').value = '';
+  document.getElementById('model').value = '';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-otp').value = '';
+  document.getElementById('step-login-otp').classList.add('hidden');
+  document.getElementById('step-dashboard').classList.add('hidden');
+  selectPlan('free');
+  setMode('register');
+  setStep(1);
+}
+
+function copyText(id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById(id).parentElement.querySelector('.copy-btn');
+    if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); }
+  });
+}
+
+// ── Crypto helpers ──
+function canonicalJson(obj) {
+  if (obj === null || obj === undefined) return 'null';
+  if (typeof obj === 'string') return JSON.stringify(obj);
+  if (typeof obj === 'number' || typeof obj === 'boolean') return String(obj);
+  if (Array.isArray(obj)) return '[' + obj.map(canonicalJson).join(',') + ']';
+  const keys = Object.keys(obj).sort();
+  return '{' + keys.map(k => JSON.stringify(k) + ':' + canonicalJson(obj[k])).join(',') + '}';
+}
+
+async function importPrivateKey(jwk) {
+  return crypto.subtle.importKey('jwk', jwk, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+}
+
+function bufToBase64url(buf) {
+  let binary = '';
+  for (const b of buf) binary += String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+</script>
+</body>
+</html>
