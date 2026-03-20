@@ -9,29 +9,42 @@
  */
 
 const { ethers, network } = require("hardhat");
-const fs   = require("fs");
+const fs = require("fs");
 const path = require("path");
+
+function normalizeDeployments(raw = {}) {
+  if (raw.networks && typeof raw.networks === "object") {
+    return raw;
+  }
+
+  return {
+    networks: raw,
+  };
+}
 
 async function main() {
   const networkName = network.name;
   const serverWallet = process.env.SERVER_WALLET;
 
   if (!serverWallet) {
-    console.error("✗ Set SERVER_WALLET=<address> in .env");
+    console.error("Set SERVER_WALLET=<address> in .env");
     process.exit(1);
   }
 
   const deploymentsPath = path.join(__dirname, "..", "deployments.json");
   if (!fs.existsSync(deploymentsPath)) {
-    console.error("✗ deployments.json not found. Run deploy.js first.");
+    console.error("deployments.json not found. Run deploy.js first.");
     process.exit(1);
   }
 
-  const deployments = JSON.parse(fs.readFileSync(deploymentsPath, "utf8"));
-  const contractAddress = deployments[networkName]?.address;
+  const rawDeployments = JSON.parse(fs.readFileSync(deploymentsPath, "utf8"));
+  const deployments = normalizeDeployments(rawDeployments);
+  const contractAddress =
+    deployments.networks?.[networkName]?.address ||
+    rawDeployments[networkName]?.address;
 
   if (!contractAddress) {
-    console.error(`✗ No deployment found for network: ${networkName}`);
+    console.error(`No deployment found for network: ${networkName}`);
     process.exit(1);
   }
 
@@ -45,7 +58,7 @@ async function main() {
   const tx = await AILIdentity.setMinter(serverWallet);
   await tx.wait();
 
-  console.log(`\n✓ Minter updated. Tx: ${tx.hash}`);
+  console.log(`\nMinter updated. Tx: ${tx.hash}`);
 }
 
 main().catch((err) => {

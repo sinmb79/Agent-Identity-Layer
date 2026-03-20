@@ -1,27 +1,27 @@
-# @22blabs/ail-sdk
+# @agentidcard/sdk
 
-JavaScript SDK for 22B Labs Agent Identity Layer.
+Official JavaScript SDK for Agent ID Card.
 
 Works in Node.js 18+ and modern browsers (uses WebCrypto API).
 
 ## Install
 
 ```bash
-npm install @22blabs/ail-sdk
+npm install @agentidcard/sdk
 ```
 
 ## Quick start
 
 ```js
-import { AilClient } from "@22blabs/ail-sdk";
+import { AilClient, verifyOffline } from "@agentidcard/sdk";
 
 const client = new AilClient({ serverUrl: "https://api.agentidcard.org" });
 
 // 1. Register owner
 const owner = await client.registerOwner({ email: "you@example.com", org: "your_org" });
 
-// 2. Verify email
-await client.verifyEmail({ owner_key_id: owner.owner_key_id, otp: owner._dev_otp });
+// 2. Verify email with the OTP sent to the owner's inbox
+await client.verifyEmail({ owner_key_id: owner.owner_key_id, otp: "123456" });
 
 // 3. Register agent (SDK handles signing automatically)
 const agent = await client.registerAgent({
@@ -54,34 +54,65 @@ const keys = await client.getPublicKeys();
 const offline = await verifyOffline(agent.credential.token, keys.keys[0]);
 ```
 
+## Session-based registration
+
+```js
+const login = await client.loginOwner({ email: "you@example.com" });
+
+const session = await client.verifyLogin({
+  owner_key_id: login.owner_key_id,
+  otp: "123456",
+});
+
+const agent = await client.registerAgentWithSession({
+  session_token: session.session_token,
+  payload: {
+    display_name: "OpsAgent",
+    role: "automation",
+    provider: "openai",
+    model: "gpt-5.4",
+    scope: {
+      network: "restricted",
+      secrets: "none",
+      write_access: false,
+      approval_policy: {
+        irreversible_actions: "human_required",
+        external_posting: "human_required",
+        destructive_file_ops: "human_required",
+      },
+    },
+  },
+});
+```
+
 ## Build a v1 envelope
 
 ```js
-import { buildEnvelope } from "@22blabs/ail-sdk";
+import { buildEnvelope } from "@agentidcard/sdk";
 
 const envelope = buildEnvelope({
-  ail_id:               agent.ail_id,
-  credential:           agent.credential,
-  signal_glyph:         agent.signal_glyph,
+  ail_id: agent.ail_id,
+  credential: agent.credential,
+  signal_glyph: agent.signal_glyph,
   behavior_fingerprint: agent.behavior_fingerprint,
   agent: {
-    id:          "agent_myagent_01",
-    provider:    "anthropic",
-    model:       "claude-sonnet-4-6",
-    runtime:     "claude_code",
+    id: "agent_myagent_01",
+    provider: "anthropic",
+    model: "claude-sonnet-4-6",
+    runtime: "claude_code",
   },
   owner: {
-    key_id:     owner.owner_key_id,
-    org:        "your_org",
+    key_id: owner.owner_key_id,
+    org: "your_org",
     email_hash: "sha256:...",
   },
   scope: agent_scope,
   delegation: { mode: "direct", chain_depth: 0 },
   runtime: {
     session_id: "sess_001",
-    run_id:     "run_001",
-    surface:    "cli",
-    host:       "localhost",
+    run_id: "run_001",
+    surface: "cli",
+    host: "localhost",
   },
 });
 ```
@@ -90,8 +121,8 @@ const envelope = buildEnvelope({
 
 ```js
 await client.revokeAgent({
-  ail_id:          agent.ail_id,
-  owner_key_id:    owner.owner_key_id,
+  ail_id: agent.ail_id,
+  owner_key_id: owner.owner_key_id,
   private_key_jwk: owner.private_key_jwk,
 });
 ```
@@ -102,16 +133,19 @@ await client.revokeAgent({
 
 ### `client.registerOwner({ email, org? })`
 ### `client.verifyEmail({ owner_key_id, otp })`
+### `client.loginOwner({ email })`
+### `client.verifyLogin({ owner_key_id, otp })`
 ### `client.registerAgent({ owner_key_id, private_key_jwk, payload })`
+### `client.registerAgentWithSession({ session_token, payload })`
 ### `client.revokeAgent({ ail_id, owner_key_id, private_key_jwk })`
-### `client.verify(token)` — online verification
-### `client.verifyOffline(token)` — offline (fetches JWKS once, caches)
-### `client.getPublicKeys()` — returns JWKS
+### `client.verify(token)` - online verification
+### `client.verifyOffline(token)` - offline (fetches JWKS once, caches)
+### `client.getPublicKeys()` - returns JWKS
 
-### `verifyOffline(token, publicKeyJwk)` — standalone offline verification
+### `verifyOffline(token, publicKeyJwk)` - standalone offline verification
 
-### `buildEnvelope(options)` — assemble a v1 envelope
+### `buildEnvelope(options)` - assemble a v1 envelope
 
-### `generateOwnerKeypair()` — generate EC P-256 keypair (returns `{ public_key_jwk, private_key_jwk }`)
-### `signPayload(payload, privateKeyJwk)` — sign a payload, returns base64url
-### `canonicalJson(obj)` — canonical JSON serialization
+### `generateOwnerKeypair()` - generate EC P-256 keypair (returns `{ public_key_jwk, private_key_jwk }`)
+### `signPayload(payload, private_key_jwk)` - sign a payload, returns base64url
+### `canonicalJson(obj)` - canonical JSON serialization

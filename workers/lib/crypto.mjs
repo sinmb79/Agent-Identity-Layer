@@ -7,6 +7,10 @@
 
 import { SignJWT, jwtVerify, importJWK } from "jose";
 
+export const DEFAULT_CREDENTIAL_ISSUER = "agentidcard.org";
+export const LEGACY_CREDENTIAL_ISSUER = "22blabs.ai";
+export const VALID_CREDENTIAL_ISSUERS = [DEFAULT_CREDENTIAL_ISSUER, LEGACY_CREDENTIAL_ISSUER];
+
 // ---------------------------------------------------------------------------
 // Canonical JSON — sorts object keys recursively for consistent hashing
 // ---------------------------------------------------------------------------
@@ -151,7 +155,7 @@ export async function computeScopeHash(scope) {
 // ---------------------------------------------------------------------------
 // Issue signed credential JWT
 // ---------------------------------------------------------------------------
-export async function issueCredentialJWT(claims, masterKeyData) {
+export async function issueCredentialJWT(claims, masterKeyData, issuer = DEFAULT_CREDENTIAL_ISSUER) {
   const privateKey = await importJWK(masterKeyData.private_key_jwk, "ES256");
 
   const issuedAt = new Date();
@@ -160,7 +164,7 @@ export async function issueCredentialJWT(claims, masterKeyData) {
 
   const token = await new SignJWT(claims)
     .setProtectedHeader({ alg: "ES256", typ: "JWT", kid: masterKeyData.kid })
-    .setIssuer("22blabs.ai")
+    .setIssuer(issuer)
     .setSubject(claims.ail_id)
     .setIssuedAt(issuedAt)
     .setExpirationTime(expiresAt)
@@ -172,10 +176,10 @@ export async function issueCredentialJWT(claims, masterKeyData) {
 // ---------------------------------------------------------------------------
 // Verify credential JWT
 // ---------------------------------------------------------------------------
-export async function verifyCredentialJWT(token, masterKeyData) {
+export async function verifyCredentialJWT(token, masterKeyData, validIssuers = VALID_CREDENTIAL_ISSUERS) {
   const publicKey = await importJWK(masterKeyData.public_key_jwk, "ES256");
   return jwtVerify(token, publicKey, {
-    issuer: "22blabs.ai",
+    issuer: validIssuers,
     algorithms: ["ES256"],
   });
 }

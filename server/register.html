@@ -98,7 +98,7 @@
     .scope-grid input[type="checkbox"] { width: auto; accent-color: var(--accent); }
 
     /* Plan selector */
-    .plan-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+    .plan-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
     .plan-card { background: var(--bg); border: 2px solid var(--border); border-radius: 12px;
                  padding: 16px; cursor: pointer; transition: all 0.2s; text-align: center; }
     .plan-card:hover { border-color: var(--accent); }
@@ -124,11 +124,21 @@
     .payment-status.pending { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.3); color: var(--yellow); }
     .payment-status.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
 
+    .bulk-grid { display: grid; gap: 12px; margin-top: 16px; }
+    .bulk-row { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+    .bulk-row-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .bulk-row-title { font-size: 12px; font-weight: 700; color: var(--text); }
+    .bulk-row-fields { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 10px; }
+    .bulk-row-fields label { margin-top: 0; font-size: 11px; }
+    .bulk-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
+    .bulk-result-list { display: grid; gap: 10px; margin-top: 12px; }
+
     @media (max-width: 480px) {
       .container { margin-top: 20px; }
       .card { padding: 20px; }
       h1 { font-size: 22px; }
       .plan-cards { grid-template-columns: 1fr; }
+      .bulk-row-fields { grid-template-columns: 1fr; }
     }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -287,6 +297,12 @@
           <div class="plan-price">$2<small> USDC</small></div>
           <div class="plan-desc">Per additional agent<br>JWT + NFT</div>
         </div>
+        <div class="plan-card" onclick="selectPlan('bulk')" id="plan-bulk">
+          <div class="plan-badge">LOGIN REQUIRED</div>
+          <div class="plan-name">Bulk 20</div>
+          <div class="plan-price">$30<small> USDC</small></div>
+          <div class="plan-desc">20 agents in one payment<br>$1.50 each</div>
+        </div>
       </div>
       <p class="hint" style="text-align:center; margin-top:8px;">
         Need 20+ agents? <strong style="color:var(--green);">Bulk: $30 USDC for 20 agents ($1.50 each)</strong>
@@ -347,41 +363,55 @@
   <div id="step-4" class="hidden">
     <div class="step-label">Step 4 — Agent Details</div>
     <div class="card">
-      <label for="display_name">Agent Display Name</label>
-      <input type="text" id="display_name" placeholder="MyAssistant">
+      <div id="single-agent-form">
+        <label for="display_name">Agent Display Name</label>
+        <input type="text" id="display_name" placeholder="MyAssistant">
 
-      <label for="role">Role</label>
-      <select id="role">
-        <option value="assistant">Assistant</option>
-        <option value="coding">Coding</option>
-        <option value="research">Research</option>
-        <option value="automation">Automation</option>
-        <option value="customer_service">Customer Service</option>
-        <option value="other">Other</option>
-      </select>
+        <label for="role">Role</label>
+        <select id="role">
+          <option value="assistant">Assistant</option>
+          <option value="coding">Coding</option>
+          <option value="research">Research</option>
+          <option value="automation">Automation</option>
+          <option value="customer_service">Customer Service</option>
+          <option value="other">Other</option>
+        </select>
 
-      <label for="provider">Provider</label>
-      <select id="provider">
-        <option value="anthropic">Anthropic</option>
-        <option value="openai">OpenAI</option>
-        <option value="google">Google</option>
-        <option value="meta">Meta</option>
-        <option value="custom">Custom / Self-hosted</option>
-      </select>
+        <label for="provider">Provider</label>
+        <select id="provider">
+          <option value="anthropic">Anthropic</option>
+          <option value="openai">OpenAI</option>
+          <option value="google">Google</option>
+          <option value="meta">Meta</option>
+          <option value="custom">Custom / Self-hosted</option>
+        </select>
 
-      <label for="model">Model (optional)</label>
-      <input type="text" id="model" placeholder="claude-sonnet-4-6">
+        <label for="model">Model (optional)</label>
+        <input type="text" id="model" placeholder="claude-sonnet-4-6">
 
-      <div class="divider"></div>
-      <label style="margin-top:0">Scope &amp; Permissions</label>
-      <div class="scope-grid">
-        <label><input type="checkbox" id="scope-network"> Network Access</label>
-        <label><input type="checkbox" id="scope-write"> Write Access</label>
-        <label><input type="checkbox" id="scope-secrets"> Secrets Access</label>
-        <label><input type="checkbox" checked id="scope-human"> Human-in-the-loop</label>
+        <div class="divider"></div>
+        <label style="margin-top:0">Scope &amp; Permissions</label>
+        <div class="scope-grid">
+          <label><input type="checkbox" id="scope-network"> Network Access</label>
+          <label><input type="checkbox" id="scope-write"> Write Access</label>
+          <label><input type="checkbox" id="scope-secrets"> Secrets Access</label>
+          <label><input type="checkbox" checked id="scope-human"> Human-in-the-loop</label>
+        </div>
+
+        <button class="btn" id="btn-create" onclick="createAgent()">Issue Credential</button>
       </div>
 
-      <button class="btn" id="btn-create" onclick="createAgent()">Issue Credential</button>
+      <div id="bulk-agent-form" class="hidden">
+        <p class="hint" style="margin-top:0;">
+          Bulk 20 uses the same safe default scope for every agent: restricted network, no secrets, no write access, and human approval required.
+        </p>
+        <div class="bulk-meta">
+          <span class="hint" id="bulk-row-count">5 / 20 rows visible</span>
+          <button class="copy-btn" type="button" id="btn-add-bulk-row" onclick="addBulkRow()" style="float:none;">Add more</button>
+        </div>
+        <div class="bulk-grid" id="bulk-agent-rows"></div>
+        <button class="btn" id="btn-create-bulk" onclick="createBulkAgents()">Register All 20 Agents</button>
+      </div>
       <div id="step4-error" class="error hidden"></div>
     </div>
   </div>
@@ -390,7 +420,7 @@
   <div id="step-result" class="hidden">
     <div class="step-label" style="color:var(--green);">Registration Complete</div>
     <div class="card">
-      <div class="result-section">
+      <div class="result-section" id="single-result-summary">
         <div class="result-item">
           <div class="label">AIL ID</div>
           <div class="value big" id="res-ail-id"></div>
@@ -434,6 +464,18 @@
         </div>
       </div>
 
+      <div class="result-section hidden" id="bulk-result-summary">
+        <div class="result-item">
+          <div class="label">Bulk Registration</div>
+          <div class="value big" id="bulk-res-count"></div>
+        </div>
+        <div class="result-item">
+          <div class="label">Total Paid</div>
+          <div class="value" id="bulk-res-total"></div>
+        </div>
+        <div class="bulk-result-list" id="bulk-res-list"></div>
+      </div>
+
       <button class="btn btn-outline" style="margin-top:24px" onclick="downloadResult()">Download Credentials (JSON)</button>
       <button class="btn btn-outline" style="margin-top:8px" onclick="resetForm()">Register Another Agent</button>
       <a href="/" class="btn btn-outline" style="margin-top:8px; display:block; text-align:center; text-decoration:none; color:var(--text);">Go Home</a>
@@ -447,25 +489,98 @@
 const API = window.location.origin;
 const TOTAL_STEPS = 4;
 
-// Base network config
+// ===== NETWORK CONFIG =====
+const NETWORK = 'testnet'; // Change to 'mainnet' for production
+
 const BASE_CHAIN_ID = '0x2105';       // Base mainnet 8453
 const BASE_SEPOLIA_ID = '0x14a34';    // Base Sepolia 84532
-const TARGET_CHAIN_ID = BASE_SEPOLIA_ID; // Switch to BASE_CHAIN_ID for mainnet
 
-// USDC contract on Base Sepolia (use real Base mainnet USDC: 0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
-const USDC_ADDRESS = '0x036CbD53842c5426634e7929541eC2318f3dCF7e'; // Base Sepolia USDC
+const CHAIN_CONFIG = {
+  mainnet: {
+    chainId: BASE_CHAIN_ID,
+    usdcAddress: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+    chainName: 'Base',
+    rpcUrl: 'https://mainnet.base.org',
+    explorer: 'https://basescan.org',
+  },
+  testnet: {
+    chainId: BASE_SEPOLIA_ID,
+    usdcAddress: '0x036CbD53842c5426634e7929541eC2318f3dCF7e',
+    chainName: 'Base Sepolia',
+    rpcUrl: 'https://sepolia.base.org',
+    explorer: 'https://sepolia.basescan.org',
+  },
+};
+
+const { chainId: TARGET_CHAIN_ID, usdcAddress: USDC_ADDRESS } = CHAIN_CONFIG[NETWORK];
+// ===== END NETWORK CONFIG =====
 const USDC_DECIMALS = 6;
 const STANDARD_PRICE_USDC = 2;
+const BULK_PLAN_PRICE_USDC = 30;
+const BULK_AGENT_LIMIT = 20;
+const BULK_INITIAL_ROWS = 5;
 const PAYMENT_RECEIVER = '0x4eeAD61dF800fcfA7a9F698f811a855389F74b6C'; // Your receiver address
+const PLAN_CONFIG = {
+  free: {
+    paid: false,
+    amount: 0,
+    paymentLabel: '',
+    paymentHint: '',
+    payButton: 'Continue',
+  },
+  standard: {
+    paid: true,
+    amount: STANDARD_PRICE_USDC,
+    paymentLabel: 'Payment - $2 USDC on Base',
+    paymentHint: 'Pay $2 USDC per agent on Base network. Make sure you have enough USDC and ETH for gas.',
+    payButton: 'Pay $2 USDC',
+  },
+  bulk: {
+    paid: true,
+    amount: BULK_PLAN_PRICE_USDC,
+    paymentLabel: 'Payment - $30 USDC on Base',
+    paymentHint: 'Bulk 20 requires one $30 USDC payment and exactly 20 agent rows before registration.',
+    payButton: 'Pay $30 USDC',
+  },
+};
+const BULK_DEFAULT_SCOPE = {
+  network: 'restricted',
+  secrets: 'none',
+  write_access: false,
+  approval_policy: {
+    irreversible_actions: 'human_required',
+    external_posting: 'human_required',
+    destructive_file_ops: 'human_required',
+  },
+};
 
 let ownerData = null;
 let agentData = null;
 let selectedPlan = 'free';
 let walletAddress = null;
 let paymentComplete = false;
+let paymentTxHash = null;
+let bulkRowsVisible = BULK_INITIAL_ROWS;
 let currentMode = 'register'; // 'register' or 'login'
 let loginOwnerKeyId = null;
 let sessionToken = null; // session token from OTP login
+
+function getActiveChainConfig() {
+  return CHAIN_CONFIG[NETWORK];
+}
+
+function getChainName(chainId) {
+  const knownChain = Object.values(CHAIN_CONFIG).find((config) => config.chainId === chainId);
+  return knownChain ? knownChain.chainName : 'Chain ' + parseInt(chainId, 16);
+}
+
+function isPaidPlan(plan = selectedPlan) {
+  return PLAN_CONFIG[plan].paid;
+}
+
+function getSelectedPlanConfig() {
+  return PLAN_CONFIG[selectedPlan];
+}
 
 // ── UI Helpers ──
 function showError(id, msg) {
@@ -587,8 +702,8 @@ function showDashboard(data) {
           </div>
         </div>
         <div style="font-size:11px; color:var(--muted); margin-top:4px;">
-          ${a.role} · ${a.provider || '—'} · issued ${new Date(a.issued_at).toLocaleDateString()}
-          <span style="float:right; color:var(--accent);">View ID Card →</span>
+          ${a.role} - ${a.provider || '-'} - issued ${new Date(a.issued_at).toLocaleDateString()}
+          <span style="float:right; color:var(--accent);">View ID Card ></span>
         </div>
       </div>
     `).join('');
@@ -623,17 +738,31 @@ function dashboardToRegister() {
 
 // ── Plan Selection ──
 function selectPlan(plan) {
+  hideError('step3-error');
+  if (plan === 'bulk' && !sessionToken) {
+    showError('step3-error', 'Bulk 20 is available after login. Please sign in to use the bulk plan.');
+    return;
+  }
+
+  const changedPlan = selectedPlan !== plan;
   selectedPlan = plan;
   document.getElementById('plan-free').classList.toggle('selected', plan === 'free');
   document.getElementById('plan-standard').classList.toggle('selected', plan === 'standard');
-  document.getElementById('wallet-required-hint').classList.toggle('hidden', plan === 'free');
-  document.getElementById('payment-section').classList.toggle('hidden', plan !== 'standard' || !walletAddress);
+  document.getElementById('plan-bulk').classList.toggle('selected', plan === 'bulk');
+  document.getElementById('wallet-required-hint').classList.toggle('hidden', !isPaidPlan(plan));
+  if (changedPlan) resetPaymentState();
+  updatePaymentSection();
+  updateStep4Mode();
   updateContinueButton();
 }
 
 function updateContinueButton() {
   const btn = document.getElementById('btn-step3-next');
-  if (selectedPlan === 'standard' && !paymentComplete) {
+  if (selectedPlan === 'bulk' && !sessionToken) {
+    btn.disabled = true;
+    btn.textContent = 'Login required for bulk plan';
+    btn.style.opacity = '0.4';
+  } else if (isPaidPlan() && !paymentComplete) {
     btn.disabled = true;
     btn.textContent = walletAddress ? 'Complete payment to continue' : 'Connect wallet & pay to continue';
     btn.style.opacity = '0.4';
@@ -644,10 +773,155 @@ function updateContinueButton() {
   }
 }
 
+function resetPaymentState() {
+  paymentComplete = false;
+  paymentTxHash = null;
+  const btn = document.getElementById('btn-pay');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = getSelectedPlanConfig().payButton;
+  }
+  const statusBox = document.getElementById('payment-status-box');
+  if (statusBox) {
+    statusBox.className = 'hidden';
+    statusBox.innerHTML = '';
+  }
+}
+
+function updatePaymentSection() {
+  const paymentSection = document.getElementById('payment-section');
+  if (!paymentSection) return;
+
+  if (!isPaidPlan() || !walletAddress) {
+    paymentSection.classList.add('hidden');
+    return;
+  }
+
+  const plan = getSelectedPlanConfig();
+  const paymentLabel = document.querySelector('#payment-section label');
+  const paymentHint = document.querySelector('#payment-section .hint');
+  const btn = document.getElementById('btn-pay');
+
+  if (paymentLabel) paymentLabel.textContent = plan.paymentLabel;
+  if (paymentHint) paymentHint.textContent = plan.paymentHint;
+  if (btn && !paymentComplete) btn.textContent = plan.payButton;
+  document.getElementById('payment-addr').textContent = PAYMENT_RECEIVER;
+  paymentSection.classList.remove('hidden');
+}
+
+function updateStep4Mode() {
+  const singleForm = document.getElementById('single-agent-form');
+  const bulkForm = document.getElementById('bulk-agent-form');
+  if (!singleForm || !bulkForm) return;
+
+  const bulkMode = selectedPlan === 'bulk';
+  singleForm.classList.toggle('hidden', bulkMode);
+  bulkForm.classList.toggle('hidden', !bulkMode);
+}
+
+function renderBulkRows() {
+  const container = document.getElementById('bulk-agent-rows');
+  if (!container || container.childElementCount > 0) return;
+
+  const rows = [];
+  for (let i = 1; i <= BULK_AGENT_LIMIT; i++) {
+    rows.push(`
+      <div class="bulk-row ${i > BULK_INITIAL_ROWS ? 'hidden' : ''}" id="bulk-row-${i}">
+        <div class="bulk-row-header">
+          <div class="bulk-row-title">Agent ${i}</div>
+        </div>
+        <div class="bulk-row-fields">
+          <div>
+            <label for="bulk-name-${i}">Display Name</label>
+            <input type="text" id="bulk-name-${i}" placeholder="Agent ${i}">
+          </div>
+          <div>
+            <label for="bulk-role-${i}">Role</label>
+            <select id="bulk-role-${i}">
+              <option value="assistant">Assistant</option>
+              <option value="coding">Coding</option>
+              <option value="research">Research</option>
+              <option value="automation">Automation</option>
+              <option value="customer_service">Customer Service</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="bulk-provider-${i}">Provider</label>
+            <select id="bulk-provider-${i}">
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google</option>
+              <option value="meta">Meta</option>
+              <option value="custom">Custom / Self-hosted</option>
+            </select>
+          </div>
+          <div>
+            <label for="bulk-model-${i}">Model</label>
+            <input type="text" id="bulk-model-${i}" placeholder="gpt-5.4">
+          </div>
+        </div>
+      </div>
+    `);
+  }
+
+  container.innerHTML = rows.join('');
+}
+
+function updateBulkRowMeta() {
+  const count = document.getElementById('bulk-row-count');
+  const addBtn = document.getElementById('btn-add-bulk-row');
+  if (count) count.textContent = `${bulkRowsVisible} / ${BULK_AGENT_LIMIT} rows visible`;
+  if (addBtn) addBtn.classList.toggle('hidden', bulkRowsVisible >= BULK_AGENT_LIMIT);
+}
+
+function addBulkRow() {
+  if (bulkRowsVisible >= BULK_AGENT_LIMIT) return;
+  bulkRowsVisible += 1;
+  document.getElementById(`bulk-row-${bulkRowsVisible}`).classList.remove('hidden');
+  updateBulkRowMeta();
+}
+
+function resetBulkRows() {
+  bulkRowsVisible = BULK_INITIAL_ROWS;
+  for (let i = 1; i <= BULK_AGENT_LIMIT; i++) {
+    const row = document.getElementById(`bulk-row-${i}`);
+    if (row) row.classList.toggle('hidden', i > BULK_INITIAL_ROWS);
+    const name = document.getElementById(`bulk-name-${i}`);
+    const role = document.getElementById(`bulk-role-${i}`);
+    const provider = document.getElementById(`bulk-provider-${i}`);
+    const model = document.getElementById(`bulk-model-${i}`);
+    if (name) name.value = '';
+    if (role) role.value = 'assistant';
+    if (provider) provider.value = 'openai';
+    if (model) model.value = '';
+  }
+  updateBulkRowMeta();
+}
+
+function collectBulkAgents() {
+  const agents = [];
+  for (let i = 1; i <= BULK_AGENT_LIMIT; i++) {
+    const displayName = document.getElementById(`bulk-name-${i}`).value.trim();
+    if (!displayName) continue;
+
+    agents.push({
+      display_name: displayName,
+      role: document.getElementById(`bulk-role-${i}`).value,
+      provider: document.getElementById(`bulk-provider-${i}`).value,
+      model: document.getElementById(`bulk-model-${i}`).value.trim() || undefined,
+      scope: BULK_DEFAULT_SCOPE,
+      ...(walletAddress && { wallet_address: walletAddress }),
+    });
+  }
+  return agents;
+}
+
 // ── Wallet Connection ──
 async function connectWallet() {
   // Check for MetaMask or any injected provider
   const provider = window.ethereum;
+  const activeChain = getActiveChainConfig();
   if (!provider) {
     showError('step3-error', 'MetaMask is not installed. Please install MetaMask first.');
     window.open('https://metamask.io/download/', '_blank');
@@ -668,7 +942,7 @@ async function connectWallet() {
     try {
       await provider.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: TARGET_CHAIN_ID }],
+        params: [{ chainId: activeChain.chainId }],
       });
     } catch (switchError) {
       // Chain not added (4902) or unrecognized chain
@@ -676,20 +950,16 @@ async function connectWallet() {
         await provider.request({
           method: 'wallet_addEthereumChain',
           params: [{
-            chainId: TARGET_CHAIN_ID,
-            chainName: TARGET_CHAIN_ID === BASE_CHAIN_ID ? 'Base' : 'Base Sepolia',
+            chainId: activeChain.chainId,
+            chainName: activeChain.chainName,
             nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-            rpcUrls: [TARGET_CHAIN_ID === BASE_CHAIN_ID
-              ? 'https://mainnet.base.org'
-              : 'https://sepolia.base.org'],
-            blockExplorerUrls: [TARGET_CHAIN_ID === BASE_CHAIN_ID
-              ? 'https://basescan.org'
-              : 'https://sepolia.basescan.org'],
+            rpcUrls: [activeChain.rpcUrl],
+            blockExplorerUrls: [activeChain.explorer],
           }],
         });
       } else if (switchError.code === 4001) {
         // User rejected chain switch — still connected, just on wrong chain
-        showError('step3-error', 'Please switch to Base network in MetaMask to proceed.');
+        showError('step3-error', `Please switch to ${activeChain.chainName} in MetaMask to proceed.`);
       }
     }
 
@@ -718,7 +988,7 @@ async function connectWallet() {
 
 function disconnectWallet() {
   walletAddress = null;
-  paymentComplete = false;
+  resetPaymentState();
   updateWalletUI();
 }
 
@@ -737,15 +1007,9 @@ async function updateWalletUI() {
     document.getElementById('wallet-top-addr').textContent = short;
 
     const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-    const chainName = chainId === BASE_CHAIN_ID ? 'Base' :
-                      chainId === BASE_SEPOLIA_ID ? 'Base Sepolia' : 'Chain ' + parseInt(chainId, 16);
-    document.getElementById('wallet-chain-display').textContent = chainName;
+    document.getElementById('wallet-chain-display').textContent = getChainName(chainId);
 
-    // Show payment section if Standard selected
-    if (selectedPlan === 'standard') {
-      document.getElementById('payment-section').classList.remove('hidden');
-      document.getElementById('payment-addr').textContent = PAYMENT_RECEIVER;
-    }
+    updatePaymentSection();
     updateContinueButton();
   } else {
     notConnected.classList.remove('hidden');
@@ -758,13 +1022,17 @@ async function updateWalletUI() {
 // ── USDC Payment ──
 async function payWithUSDC() {
   if (!walletAddress) return showError('step3-error', 'Connect your wallet first.');
+  const activeChain = getActiveChainConfig();
+  const plan = getSelectedPlanConfig();
+
+  if (!isPaidPlan()) return showError('step3-error', 'Select a paid plan before sending payment.');
 
   const btn = document.getElementById('btn-pay');
   btn.disabled = true; btn.textContent = 'Processing...';
 
   try {
     // ERC-20 transfer(address,uint256) function selector
-    const amount = BigInt(STANDARD_PRICE_USDC) * BigInt(10 ** USDC_DECIMALS);
+    const amount = BigInt(plan.amount) * BigInt(10 ** USDC_DECIMALS);
     const amountHex = amount.toString(16).padStart(64, '0');
     const receiverPadded = PAYMENT_RECEIVER.slice(2).toLowerCase().padStart(64, '0');
     // transfer(address,uint256) = 0xa9059cbb
@@ -774,7 +1042,7 @@ async function payWithUSDC() {
       method: 'eth_sendTransaction',
       params: [{
         from: walletAddress,
-        to: USDC_ADDRESS,
+        to: activeChain.usdcAddress,
         data: data,
         // gas will be estimated by MetaMask
       }],
@@ -790,6 +1058,7 @@ async function payWithUSDC() {
     const confirmed = await waitForTx(txHash);
     if (confirmed) {
       paymentComplete = true;
+      paymentTxHash = txHash;
       statusBox.className = 'payment-status success';
       statusBox.innerHTML = 'Payment confirmed! You can now proceed.';
       btn.textContent = 'Paid';
@@ -802,7 +1071,7 @@ async function payWithUSDC() {
     } else {
       showError('step3-error', err.message || 'Payment failed.');
     }
-    btn.disabled = false; btn.textContent = 'Pay $2 USDC';
+    btn.disabled = false; btn.textContent = plan.payButton;
   }
 }
 
@@ -826,12 +1095,16 @@ async function waitForTx(txHash, maxAttempts = 60) {
 // ── Step 3 → Step 4 ──
 function goToStep4() {
   hideError('step3-error');
-  if (selectedPlan === 'standard' && !walletAddress) {
+  if (selectedPlan === 'bulk' && !sessionToken) {
+    return showError('step3-error', 'Bulk 20 requires a logged-in owner session.');
+  }
+  if (isPaidPlan() && !walletAddress) {
     return showError('step3-error', 'Wallet connection is required for paid plans.');
   }
-  if (selectedPlan === 'standard' && !paymentComplete) {
+  if (isPaidPlan() && !paymentComplete) {
     return showError('step3-error', 'Please complete USDC payment to continue.');
   }
+  updateStep4Mode();
   setStep(4);
 }
 
@@ -968,21 +1241,64 @@ async function createAgent() {
   }
 }
 
-function showResult(data) {
+async function createBulkAgents() {
+  hideError('step4-error');
+  if (!sessionToken) return showError('step4-error', 'Bulk 20 requires a logged-in owner session.');
+  if (!paymentComplete || !paymentTxHash) return showError('step4-error', 'Please complete the $30 USDC payment first.');
+
+  const agents = collectBulkAgents();
+  if (agents.length !== BULK_AGENT_LIMIT) {
+    return showError('step4-error', `Bulk 20 requires exactly ${BULK_AGENT_LIMIT} filled agent rows.`);
+  }
+
+  const btn = document.getElementById('btn-create-bulk');
+  btn.disabled = true; btn.textContent = 'Registering all agents...';
+
+  try {
+    const res = await fetch(API + '/agents/register-bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_token: sessionToken,
+        agents,
+        tx_hash: paymentTxHash,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || data.error || 'Bulk registration failed');
+
+    agentData = data;
+    showBulkResult(data);
+  } catch (e) {
+    showError('step4-error', e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Register All 20 Agents';
+  }
+}
+
+function prepareResultView() {
   for (let i = 1; i <= TOTAL_STEPS; i++) {
     const el = document.getElementById('step-' + i);
     if (el) el.classList.add('hidden');
   }
   document.querySelectorAll('.step-dot').forEach(d => d.classList.add('done'));
+  document.getElementById('step-result').classList.remove('hidden');
+}
 
+function showResult(data) {
+  prepareResultView();
+  document.getElementById('single-result-summary').classList.remove('hidden');
+  document.getElementById('bulk-result-summary').classList.add('hidden');
   document.getElementById('res-ail-id').textContent = data.ail_id;
-  document.getElementById('res-token').textContent = data.credential?.token || '—';
+  document.getElementById('res-token').textContent = data.credential?.token || '-';
   // behavior_fingerprint is an object with .hash property
   const fp = data.behavior_fingerprint;
   document.getElementById('res-fingerprint').textContent =
-    typeof fp === 'string' ? fp : (fp?.hash || JSON.stringify(fp) || '—');
+    typeof fp === 'string' ? fp : (fp?.hash || JSON.stringify(fp) || '-');
   document.getElementById('res-owner-key').textContent = ownerData.owner_key_id;
-  document.getElementById('res-private-key').textContent = JSON.stringify(ownerData.private_key_jwk);
+  document.getElementById('res-private-key').textContent = ownerData.private_key_jwk
+    ? JSON.stringify(ownerData.private_key_jwk)
+    : 'Not shown for session-based registration.';
 
   // Load the ID card image from the server
   if (data.nft_image_url) {
@@ -995,19 +1311,28 @@ function showResult(data) {
   if (data.nft?.token_id) {
     document.getElementById('res-nft-section').classList.remove('hidden');
     document.getElementById('res-nft-token').textContent = data.nft.token_id;
-    document.getElementById('res-nft-tx').textContent = data.nft.tx_hash || '—';
+    document.getElementById('res-nft-tx').textContent = data.nft.tx_hash || '-';
   }
+}
 
-  document.getElementById('step-result').classList.remove('hidden');
+function showBulkResult(data) {
+  prepareResultView();
+  document.getElementById('single-result-summary').classList.add('hidden');
+  document.getElementById('bulk-result-summary').classList.remove('hidden');
+  document.getElementById('bulk-res-count').textContent = `${data.count} Agents Registered`;
+  document.getElementById('bulk-res-total').textContent = `${data.total_paid} USDC`;
+  document.getElementById('bulk-res-list').innerHTML = data.agents.map((agent) => `
+    <div class="result-item">
+      <div class="label">${agent.display_name}</div>
+      <div class="value">${agent.ail_id}</div>
+      <div class="hint" style="margin-top:6px;">NFT Token ID: ${agent.nft_token_id || 'Pending'}</div>
+    </div>
+  `).join('');
 }
 
 function downloadResult() {
   const blob = new Blob([JSON.stringify({
-    ail_id: agentData.ail_id,
-    credential: agentData.credential,
-    signal_glyph: agentData.signal_glyph,
-    behavior_fingerprint: agentData.behavior_fingerprint,
-    nft: agentData.nft || null,
+    result: agentData,
     wallet_address: walletAddress,
     plan: selectedPlan,
     owner_key_id: ownerData.owner_key_id,
@@ -1015,13 +1340,15 @@ function downloadResult() {
   }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = (agentData.ail_id || 'agent') + '-credentials.json';
+  const baseName = agentData?.ail_id || (agentData?.count ? `bulk-${agentData.count}-agents` : 'agent');
+  a.download = baseName + '-credentials.json';
   a.click();
 }
 
 function resetForm() {
   ownerData = null; agentData = null;
-  selectedPlan = 'free'; paymentComplete = false;
+  selectedPlan = 'free';
+  walletAddress = null;
   loginOwnerKeyId = null; sessionToken = null;
   document.getElementById('email').value = '';
   document.getElementById('org').value = '';
@@ -1032,6 +1359,10 @@ function resetForm() {
   document.getElementById('login-otp').value = '';
   document.getElementById('step-login-otp').classList.add('hidden');
   document.getElementById('step-dashboard').classList.add('hidden');
+  document.getElementById('single-result-summary').classList.remove('hidden');
+  document.getElementById('bulk-result-summary').classList.add('hidden');
+  resetPaymentState();
+  resetBulkRows();
   selectPlan('free');
   setMode('register');
   setStep(1);
@@ -1044,6 +1375,11 @@ function copyText(id) {
     if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); }
   });
 }
+
+renderBulkRows();
+resetBulkRows();
+updateStep4Mode();
+updateContinueButton();
 
 // ── Crypto helpers ──
 function canonicalJson(obj) {

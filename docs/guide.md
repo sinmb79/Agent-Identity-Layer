@@ -225,7 +225,7 @@ const payload = {
 ### Step 2: 오너 키로 서명
 
 ```javascript
-import { signPayload } from "@22blabs/ail-sdk";
+import { signPayload } from "@agentidcard/sdk";
 
 const owner_signature = await signPayload(payload, private_key_jwk);
 ```
@@ -340,7 +340,7 @@ Content-Type: application/json
 네트워크 호출 없이 로컬에서 JWT를 검증합니다.
 
 ```javascript
-import { verifyOffline } from "@22blabs/ail-sdk";
+import { verifyOffline } from "@agentidcard/sdk";
 
 // 공개키 가져오기 (최초 1회 또는 주기적으로)
 const res = await fetch("https://api.22blabs.ai/keys");
@@ -353,7 +353,7 @@ console.log(result.valid); // true
 ```
 
 ```python
-from ail_sdk import verify_offline
+from agentidcard import verify_offline
 
 result = verify_offline(token, public_key_jwk)
 print(result["valid"])  # True
@@ -435,13 +435,13 @@ Fingerprint 타입 (seed 기반 결정):
 ### JavaScript / Node.js
 
 ```bash
-npm install @22blabs/ail-sdk
+npm install @agentidcard/sdk
 ```
 
 #### 에이전트 등록 (전체 플로우)
 
 ```javascript
-import { AilClient } from "@22blabs/ail-sdk";
+import { AilClient } from "@agentidcard/sdk";
 
 const client = new AilClient("https://api.22blabs.ai");
 
@@ -484,7 +484,7 @@ console.log(result.valid);  // true
 #### 오프라인 검증
 
 ```javascript
-import { verifyOffline } from "@22blabs/ail-sdk";
+import { verifyOffline } from "@agentidcard/sdk";
 
 const result = await verifyOffline(token, publicKeyJwk);
 // → { valid, ail_id, display_name, owner_org, ... }
@@ -500,7 +500,7 @@ import {
   computeBehaviorFingerprint, // 행동 핑거프린트 계산
   canonicalJson,          // 정규화 JSON (키 정렬)
   sha256hex,              // SHA-256 해시
-} from "@22blabs/ail-sdk";
+} from "@agentidcard/sdk";
 ```
 
 ### Python
@@ -510,7 +510,7 @@ pip install ail-sdk
 ```
 
 ```python
-from ail_sdk import AilClient, verify_offline
+from agentidcard import AilClient, verify_offline
 
 client = AilClient("https://api.22blabs.ai")
 

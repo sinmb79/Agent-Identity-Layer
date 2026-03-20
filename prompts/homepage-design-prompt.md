@@ -207,7 +207,7 @@ POST /agents/register
 
 또는 공개키로 오프라인 검증 가능:
 ```js
-import { verifyOffline } from "@22blabs/ail-sdk"
+import { verifyOffline } from "@agentidcard/sdk"
 const result = await verifyOffline(token, publicKeyJwk)
 ```
 
@@ -221,10 +221,10 @@ const result = await verifyOffline(token, publicKeyJwk)
 
 **JavaScript:**
 ```bash
-npm install @22blabs/ail-sdk
+npm install @agentidcard/sdk
 ```
 ```js
-import { AilClient } from "@22blabs/ail-sdk"
+import { AilClient } from "@agentidcard/sdk"
 const client = new AilClient()
 const result = await client.verify(token)
 ```
@@ -234,7 +234,7 @@ const result = await client.verify(token)
 pip install ail-sdk
 ```
 ```python
-from ail_sdk import AilClient
+from agentidcard import AilClient
 client = AilClient()
 result = client.verify(token)
 ```
