@@ -29,6 +29,7 @@ database_id = "878306bc-3d96-4a4a-9a1e-f8a841660b09"
 #   CHAIN_RPC_URL     — Alchemy RPC URL
 #   CHAIN_PRIVATE_KEY — Minter wallet private key
 #   NFT_CONTRACT_ADDRESS — Deployed AILIdentity contract
+#   ACHIEVEMENT_NFT_CONTRACT_ADDRESS - Deployed AILAchievement contract
 # Optional (email):
 #   RESEND_API_KEY    — Resend API key
 #   EMAIL_FROM        — Sender address (default: noreply@agentidcard.org)

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { verifyCredentialJWT } from "../lib/crypto.mjs";
+import { listAgentBadges } from "../lib/achievements.mjs";
 
 export const verifyRoutes = new Hono();
 
@@ -51,7 +52,7 @@ verifyRoutes.post("/verify", async (c) => {
     });
   }
 
-  const [scoreRows, recordRows, achievementCount] = await Promise.all([
+  const [scoreRows, recordRows, achievementCount, recentBadges] = await Promise.all([
     db.prepare(`
       SELECT dimension, score
       FROM composite_scores
@@ -68,6 +69,7 @@ verifyRoutes.post("/verify", async (c) => {
       FROM achievements
       WHERE agent_id = ?
     `).bind(agent.ail_id).first(),
+    listAgentBadges(db, agent.ail_id),
   ]);
 
   const reputationRecords = recordRows.results || [];
@@ -97,6 +99,12 @@ verifyRoutes.post("/verify", async (c) => {
       top_skill: topSkillEntry?.[0] ?? null,
       active_since: reputationRecords[0]?.submitted_at ?? null,
       detail_url: `https://agentidcard.org/agent/${agent.ail_id}/reputation`,
+      profile_url: `https://agentidcard.org/agent/${agent.ail_id}`,
+      badges_preview: recentBadges.slice(0, 3).map((badge) => ({
+        badge_id: badge.badge_id,
+        title: badge.title,
+        rarity: badge.rarity,
+      })),
     };
   }
 

@@ -7,11 +7,14 @@
     "compile":        "hardhat compile",
     "test":           "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy.js --network base-sepolia",
+    "deploy:achievement:testnet": "hardhat run scripts/deploy-achievement.js --network base-sepolia",
     "deploy:base":    "hardhat run scripts/deploy.js --network base",
+    "deploy:achievement:base": "hardhat run scripts/deploy-achievement.js --network base",
     "deploy:polygon": "hardhat run scripts/deploy.js --network polygon",
     "deploy:bnb":     "hardhat run scripts/deploy.js --network bnb",
     "deploy:world":   "hardhat run scripts/deploy.js --network worldchain",
-    "set-minter":     "hardhat run scripts/set-minter.js"
+    "set-minter":     "hardhat run scripts/set-minter.js",
+    "set-achievement-minter": "hardhat run scripts/set-achievement-minter.js"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
