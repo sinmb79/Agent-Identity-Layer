@@ -12,6 +12,16 @@ export class AilClient {
     this.serverUrl = serverUrl.replace(/\/$/, "");
   }
 
+  #withQuery(path, params = {}) {
+    const search = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value === undefined || value === null || value === "") continue;
+      search.set(key, String(value));
+    }
+    const query = search.toString();
+    return query ? `${path}?${query}` : path;
+  }
+
   async #post(path, body) {
     const res = await fetch(`${this.serverUrl}${path}`, {
       method: "POST",
@@ -136,6 +146,42 @@ export class AilClient {
    */
   async getPublicKeys() {
     return this.#get("/keys");
+  }
+
+  // -------------------------------------------------------------------------
+  // Reputation and achievements
+  // -------------------------------------------------------------------------
+
+  async getReputation(ailId) {
+    return this.#get(`/reputation/${encodeURIComponent(ailId)}`);
+  }
+
+  async getReputationHistory(ailId, params = {}) {
+    return this.#get(this.#withQuery(`/reputation/${encodeURIComponent(ailId)}/history`, params));
+  }
+
+  async compareAgents(ailId, otherAilId) {
+    return this.#get(this.#withQuery(`/reputation/${encodeURIComponent(ailId)}/compare`, { with: otherAilId }));
+  }
+
+  async getLeaderboard(params = {}) {
+    return this.#get(this.#withQuery("/reputation/leaderboard", params));
+  }
+
+  async getBadges(ailId) {
+    return this.#get(`/reputation/${encodeURIComponent(ailId)}/badges`);
+  }
+
+  async getSeasonReport(ailId, season, params = {}) {
+    return this.#get(
+      this.#withQuery(`/reputation/${encodeURIComponent(ailId)}/season/${season}`, params)
+    );
+  }
+
+  async awardBadge({ source_name, agent_id, badge_id, private_key_jwk, merkle_proof = null }) {
+    const payload = { source_name, agent_id, badge_id, merkle_proof };
+    const signature = await signPayload(payload, private_key_jwk);
+    return this.#post("/reputation/badge", { ...payload, signature });
   }
 }
 

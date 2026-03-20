@@ -13,6 +13,7 @@ import { verifyRoutes } from "./routes/verify.mjs";
 import { adminRoutes } from "./routes/admin.mjs";
 import { sourcesRoutes } from "./routes/sources.mjs";
 import { reputationRoutes } from "./routes/reputation.mjs";
+import { profileRoutes } from "./routes/profile.mjs";
 import dashboardHtml from "../server/dashboard.html";
 import registerHtml from "../server/register.html";
 import landingHtml from "../web-page/index.html";
@@ -56,5 +57,6 @@ app.route("/", verifyRoutes);
 app.route("/", adminRoutes);
 app.route("/", sourcesRoutes);
 app.route("/", reputationRoutes);
+app.route("/", profileRoutes);
 
 export default app;

@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { canonicalJson, verifyOwnerSignature } from "../lib/crypto.mjs";
 import { SCORE_DIMENSIONS, recalculateScores } from "../lib/scoring.mjs";
+import { awardBadge, checkAchievements, listAgentBadges } from "../lib/achievements.mjs";
+import { generateSeasonReport, getSeasonReport } from "../lib/season-report.mjs";
 
 export const reputationRoutes = new Hono();
 
@@ -14,6 +16,12 @@ function parseJson(text, fallback = null) {
   } catch {
     return fallback;
   }
+}
+
+function parseInteger(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isInteger(parsed) ? parsed : null;
 }
 
 function buildScoresMap(rows) {
@@ -74,7 +82,7 @@ function summarizeMetrics(records) {
 
 async function getAgent(db, ailId) {
   return db.prepare(`
-    SELECT ail_id, display_name, role, owner_org, issued_at
+    SELECT ail_id, display_name, role, provider, model, owner_org, issued_at, nft_token_id
     FROM agents
     WHERE ail_id = ?
   `).bind(ailId).first();
@@ -86,6 +94,11 @@ async function getApprovedSourceByName(db, sourceName) {
     FROM registered_sources
     WHERE name = ?
   `).bind(sourceName).first();
+}
+
+async function verifySourceRequest({ source, payload, signature }) {
+  const publicKeyJwk = parseJson(source.public_key_jwk);
+  return verifyOwnerSignature(payload, signature, publicKeyJwk);
 }
 
 async function loadCompositeScores(db, ailId) {
@@ -101,42 +114,28 @@ async function loadCompositeScores(db, ailId) {
   };
 }
 
-async function loadAchievements(db, ailId) {
-  const { results } = await db.prepare(`
-    SELECT a.badge_id, a.earned_at, a.nft_token_id, rs.name AS source
-    FROM achievements a
-    JOIN registered_sources rs ON rs.id = a.source_id
-    WHERE a.agent_id = ?
-    ORDER BY a.earned_at DESC
-  `).bind(ailId).all();
-
-  return (results || []).map((achievement) => ({
-    badge_id: achievement.badge_id,
-    title: achievement.badge_id,
-    source: achievement.source,
-    earned: achievement.earned_at,
-    ...(achievement.nft_token_id && { nft_token_id: achievement.nft_token_id }),
-  }));
-}
-
 async function loadPerformanceTrend(db, ailId) {
   const { results } = await db.prepare(`
     SELECT epoch, scores_json
     FROM performance_history
     WHERE agent_id = ?
     ORDER BY recorded_at DESC
-    LIMIT 5
+    LIMIT 8
   `).bind(ailId).all();
 
-  const lastFive = (results || [])
-    .map((entry) => parseJson(entry.scores_json, {}))
-    .map((scores) => Number(scores.overall))
-    .filter((score) => Number.isFinite(score))
+  const lastEpochs = (results || [])
+    .map((entry) => ({
+      epoch: entry.epoch,
+      overall: Number(parseJson(entry.scores_json, {}).overall),
+    }))
+    .filter((entry) => Number.isFinite(entry.overall))
     .reverse();
+  const scoreValues = lastEpochs.map((entry) => entry.overall);
 
   return {
-    last_5_epochs: lastFive,
-    trend: computeTrend(lastFive),
+    last_5_epochs: scoreValues.slice(-5),
+    last_8_epochs: lastEpochs,
+    trend: computeTrend(scoreValues),
   };
 }
 
@@ -182,6 +181,23 @@ async function loadCompareEntry(db, ailId) {
     composite_scores: scores,
     total_epochs: dataPoints,
   };
+}
+
+async function loadRecentSeasonReports(db, ailId) {
+  const { results } = await db.prepare(`
+    SELECT sr.season, sr.summary_json, rs.name AS source
+    FROM season_reports sr
+    JOIN registered_sources rs ON rs.id = sr.source_id
+    WHERE sr.agent_id = ?
+    ORDER BY sr.season DESC, sr.generated_at DESC
+    LIMIT 3
+  `).bind(ailId).all();
+
+  return (results || []).map((row) => ({
+    season: row.season,
+    source: row.source,
+    summary: parseJson(row.summary_json, {}),
+  }));
 }
 
 /**
@@ -234,9 +250,12 @@ reputationRoutes.post("/reputation/submit", async (c) => {
     return c.json({ error: "agent_not_found" }, 404);
   }
 
-  const payload = { agent_id, season, epoch, metrics };
-  const publicKeyJwk = parseJson(source.public_key_jwk);
-  const signatureValid = await verifyOwnerSignature(payload, signature, publicKeyJwk);
+  const signaturePayload = { agent_id, season, epoch, metrics };
+  const signatureValid = await verifySourceRequest({
+    source,
+    payload: signaturePayload,
+    signature,
+  });
   if (!signatureValid) {
     return c.json({ error: "invalid_source_signature" }, 401);
   }
@@ -258,6 +277,7 @@ reputationRoutes.post("/reputation/submit", async (c) => {
   const recordId = crypto.randomUUID();
   const submittedAt = new Date().toISOString();
   const verified = source.verification_method === "signature" ? 1 : 0;
+  const metricsJson = canonicalJson(metrics);
 
   await db.prepare(`
     INSERT INTO reputation_records (
@@ -270,7 +290,7 @@ reputationRoutes.post("/reputation/submit", async (c) => {
     source.id,
     season,
     epoch,
-    canonicalJson(metrics),
+    metricsJson,
     merkle_proof,
     signature,
     verified,
@@ -296,18 +316,98 @@ reputationRoutes.post("/reputation/submit", async (c) => {
     source.id,
     season,
     epoch,
-    canonicalJson(metrics),
+    metricsJson,
     canonicalJson(recalculated.scores ?? {}),
     submittedAt
   ).run();
+
+  const newRecord = {
+    season,
+    epoch,
+    metrics_json: metricsJson,
+    submitted_at: submittedAt,
+  };
+  const badgesEarned = await checkAchievements(db, c.env, agent_id, source, newRecord);
+
+  let seasonReport = null;
+  if (season !== null && metrics.season_end === true) {
+    seasonReport = await generateSeasonReport(db, agent_id, source, season);
+  }
 
   return c.json({
     record_id: recordId,
     agent_id,
     verified: Boolean(verified),
     scores_updated: scoresUpdated,
+    badges_earned: badgesEarned,
+    season_report_generated: Boolean(seasonReport),
     message: "Reputation data recorded.",
   }, 201);
+});
+
+/**
+ * POST /reputation/badge
+ */
+reputationRoutes.post("/reputation/badge", async (c) => {
+  const body = await c.req.json();
+  const {
+    source_name,
+    agent_id,
+    badge_id,
+    merkle_proof = null,
+    signature,
+  } = body;
+
+  if (!source_name || !agent_id || !badge_id || !signature) {
+    return c.json({ error: "missing_fields" }, 400);
+  }
+
+  const db = c.env.DB;
+  const source = await getApprovedSourceByName(db, source_name);
+  if (!source) {
+    return c.json({ error: "source_not_found" }, 404);
+  }
+
+  if (source.status !== "approved") {
+    return c.json({ error: "source_not_approved" }, 403);
+  }
+
+  if (source.verification_method === "merkle_proof" && !merkle_proof) {
+    return c.json({ error: "missing_merkle_proof" }, 400);
+  }
+
+  const agent = await getAgent(db, agent_id);
+  if (!agent) {
+    return c.json({ error: "agent_not_found" }, 404);
+  }
+
+  const payload = { source_name, agent_id, badge_id, merkle_proof };
+  const signatureValid = await verifySourceRequest({ source, payload, signature });
+  if (!signatureValid) {
+    return c.json({ error: "invalid_source_signature" }, 401);
+  }
+
+  const existing = await db.prepare(`
+    SELECT id
+    FROM achievements
+    WHERE agent_id = ? AND badge_id = ?
+  `).bind(agent_id, badge_id).first();
+
+  if (existing) {
+    return c.json({ error: "badge_already_awarded" }, 409);
+  }
+
+  const result = await awardBadge({
+    db,
+    env: c.env,
+    agentId: agent_id,
+    source,
+    badgeId: badge_id,
+    merkleProof: merkle_proof,
+    metadata: { trigger: "manual" },
+  });
+
+  return c.json(result, 201);
 });
 
 /**
@@ -388,8 +488,12 @@ reputationRoutes.get("/reputation/:ail_id/history", async (c) => {
   }
 
   if (season !== undefined) {
+    const parsedSeason = parseInteger(season);
+    if (parsedSeason === null) {
+      return c.json({ error: "invalid_season" }, 400);
+    }
     whereClauses.push("ph.season = ?");
-    bindings.push(Number.parseInt(season, 10));
+    bindings.push(parsedSeason);
   }
 
   bindings.push(limit);
@@ -414,6 +518,50 @@ reputationRoutes.get("/reputation/:ail_id/history", async (c) => {
       recorded_at: entry.recorded_at,
     })),
   });
+});
+
+/**
+ * GET /reputation/:ail_id/badges
+ */
+reputationRoutes.get("/reputation/:ail_id/badges", async (c) => {
+  const ailId = c.req.param("ail_id");
+  const db = c.env.DB;
+
+  const agent = await getAgent(db, ailId);
+  if (!agent) {
+    return c.json({ error: "agent_not_found" }, 404);
+  }
+
+  return c.json({
+    ail_id: ailId,
+    badges: await listAgentBadges(db, ailId),
+  });
+});
+
+/**
+ * GET /reputation/:ail_id/season/:season_number
+ */
+reputationRoutes.get("/reputation/:ail_id/season/:season_number", async (c) => {
+  const ailId = c.req.param("ail_id");
+  const season = parseInteger(c.req.param("season_number"));
+  const sourceName = c.req.query("source") ?? null;
+  const db = c.env.DB;
+
+  if (season === null || season < 0) {
+    return c.json({ error: "invalid_season" }, 400);
+  }
+
+  const agent = await getAgent(db, ailId);
+  if (!agent) {
+    return c.json({ error: "agent_not_found" }, 404);
+  }
+
+  const report = await getSeasonReport(db, ailId, season, sourceName);
+  if (!report) {
+    return c.json({ error: "season_report_not_found" }, 404);
+  }
+
+  return c.json(report);
 });
 
 /**
@@ -476,11 +624,12 @@ reputationRoutes.get("/reputation/:ail_id", async (c) => {
     return c.json({ error: "agent_not_found" }, 404);
   }
 
-  const [scoresResult, platformRecords, achievements, performanceTrend] = await Promise.all([
+  const [scoresResult, platformRecords, achievements, performanceTrend, seasonReports] = await Promise.all([
     loadCompositeScores(db, ailId),
     loadPlatformRecords(db, ailId),
-    loadAchievements(db, ailId),
+    listAgentBadges(db, ailId),
     loadPerformanceTrend(db, ailId),
+    loadRecentSeasonReports(db, ailId),
   ]);
 
   return c.json({
@@ -492,6 +641,7 @@ reputationRoutes.get("/reputation/:ail_id", async (c) => {
     platform_records: platformRecords,
     achievements,
     performance_trend: performanceTrend,
+    season_reports: seasonReports,
     provisional: scoresResult.dataPoints > 0 ? scoresResult.dataPoints < 3 : false,
   });
 });

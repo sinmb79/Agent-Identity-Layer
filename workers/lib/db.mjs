@@ -132,6 +132,17 @@ export async function initSchema(db) {
       )
     `),
     db.prepare(`
+      CREATE TABLE IF NOT EXISTS season_reports (
+        id           TEXT PRIMARY KEY,
+        agent_id     TEXT NOT NULL REFERENCES agents(ail_id),
+        source_id    TEXT NOT NULL REFERENCES registered_sources(id),
+        season       INTEGER NOT NULL,
+        summary_json TEXT NOT NULL,
+        generated_at TEXT NOT NULL,
+        UNIQUE(agent_id, source_id, season)
+      )
+    `),
+    db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_reputation_agent
       ON reputation_records(agent_id)
     `),
@@ -150,6 +161,14 @@ export async function initSchema(db) {
     db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_history_agent
       ON performance_history(agent_id)
+    `),
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_season_reports_agent
+      ON season_reports(agent_id)
+    `),
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_season_reports_lookup
+      ON season_reports(agent_id, season)
     `),
   ]);
 

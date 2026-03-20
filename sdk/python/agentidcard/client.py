@@ -8,6 +8,7 @@ Usage:
 """
 
 import requests
+from urllib.parse import urlencode
 from .crypto import sign_payload
 
 
@@ -37,6 +38,18 @@ class AilClient:
         if not res.ok:
             raise AilError(data.get("error") or f"HTTP {res.status_code}", status=res.status_code)
         return data
+
+    def _with_query(self, path: str, params: dict | None = None) -> str:
+        if not params:
+            return path
+        filtered = {
+            key: value
+            for key, value in params.items()
+            if value is not None and value != ""
+        }
+        if not filtered:
+            return path
+        return f"{path}?{urlencode(filtered)}"
 
     # -------------------------------------------------------------------------
     # Owner registration and login
@@ -126,6 +139,45 @@ class AilClient:
     def get_public_keys(self) -> dict:
         """Fetch the Agent ID Card JWKS (public keys for offline verification)."""
         return self._get("/keys")
+
+    # -------------------------------------------------------------------------
+    # Reputation and achievements
+    # -------------------------------------------------------------------------
+
+    def get_reputation(self, ail_id: str) -> dict:
+        return self._get(f"/reputation/{ail_id}")
+
+    def get_reputation_history(self, ail_id: str, **params) -> dict:
+        return self._get(self._with_query(f"/reputation/{ail_id}/history", params))
+
+    def compare_agents(self, ail_id_1: str, ail_id_2: str) -> dict:
+        return self._get(self._with_query(f"/reputation/{ail_id_1}/compare", {"with": ail_id_2}))
+
+    def get_leaderboard(self, **params) -> dict:
+        return self._get(self._with_query("/reputation/leaderboard", params))
+
+    def get_badges(self, ail_id: str) -> dict:
+        return self._get(f"/reputation/{ail_id}/badges")
+
+    def get_season_report(self, ail_id: str, season: int, **params) -> dict:
+        return self._get(self._with_query(f"/reputation/{ail_id}/season/{season}", params))
+
+    def award_badge(
+        self,
+        source_name: str,
+        agent_id: str,
+        badge_id: str,
+        private_key_jwk: dict,
+        merkle_proof: str | None = None,
+    ) -> dict:
+        payload = {
+            "source_name": source_name,
+            "agent_id": agent_id,
+            "badge_id": badge_id,
+            "merkle_proof": merkle_proof,
+        }
+        signature = sign_payload(payload, private_key_jwk)
+        return self._post("/reputation/badge", {**payload, "signature": signature})
 
 
 # ---------------------------------------------------------------------------

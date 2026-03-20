@@ -64,6 +64,13 @@ export interface AilClientOptions {
   serverUrl?: string;
 }
 
+export interface ReputationQueryParams {
+  source?: string;
+  season?: number;
+  limit?: number;
+  dimension?: string;
+}
+
 export declare class AilClient {
   constructor(options?: AilClientOptions);
   registerOwner(options: { email: string; org?: string }): Promise<OwnerRegistrationResponse>;
@@ -87,6 +94,19 @@ export declare class AilClient {
   verify(token: string): Promise<Record<string, unknown>>;
   verifyOffline(token: string): Promise<OfflineVerificationResult>;
   getPublicKeys(): Promise<Record<string, unknown>>;
+  getReputation(ailId: string): Promise<Record<string, unknown>>;
+  getReputationHistory(ailId: string, params?: ReputationQueryParams): Promise<Record<string, unknown>>;
+  compareAgents(ailId: string, otherAilId: string): Promise<Record<string, unknown>>;
+  getLeaderboard(params?: ReputationQueryParams): Promise<Record<string, unknown>>;
+  getBadges(ailId: string): Promise<Record<string, unknown>>;
+  getSeasonReport(ailId: string, season: number, params?: { source?: string }): Promise<Record<string, unknown>>;
+  awardBadge(options: {
+    source_name: string;
+    agent_id: string;
+    badge_id: string;
+    private_key_jwk: Jwk;
+    merkle_proof?: string | null;
+  }): Promise<Record<string, unknown>>;
 }
 
 export declare function verifyOffline(token: string, publicKeyJwk: Jwk): Promise<OfflineVerificationResult>;
