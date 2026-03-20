@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 3,
+  "networks": {
+    "base-sepolia": {
+      "identity": {
+        "address": "0x4eeAD61dF800fcfA7a9F698f811a855389F74b6C",
+        "deployer": "0xf95232Ae6a716862799C90239028fb590C9bB307",
+        "txHash": "0x4ca1bb60d6296fbfe0a333b3a22f13bb1d05e89a0ff3bb38fa62a885e3f72b7d",
+        "deployedAt": "2026-03-17T11:48:22.366Z"
+      },
+      "achievement": {
+        "address": "",
+        "deployer": "",
+        "txHash": "",
+        "deployedAt": ""
+      }
+    },
+    "base": {
+      "identity": {
+        "address": "0x6C07708154eCae0797dB406e75Fd7F2593fEf18f",
+        "deployer": "0xf95232Ae6a716862799C90239028fb590C9bB307",
+        "txHash": "0x291c74b5057084cbd7f5720dce2e4400ab9bf793e3b7b2f7769f304571fe8b89",
+        "deployedAt": "2026-03-20T22:22:33.147Z"
+      },
+      "achievement": {
+        "address": "0x9FD7CBC2868efB2a5B4aED12e305a49bdC230B72",
+        "deployer": "0xf95232Ae6a716862799C90239028fb590C9bB307",
+        "txHash": "0x3ea8666cf0d958b346ae2f119975f16e511cdea6dea2d6d3f733071666cf928b",
+        "deployedAt": "2026-03-20T22:27:33.568Z"
+      }
+    }
+  }
+}
