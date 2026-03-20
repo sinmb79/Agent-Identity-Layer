@@ -11,6 +11,8 @@ import { ownersRoutes } from "./routes/owners.mjs";
 import { agentsRoutes } from "./routes/agents.mjs";
 import { verifyRoutes } from "./routes/verify.mjs";
 import { adminRoutes } from "./routes/admin.mjs";
+import { sourcesRoutes } from "./routes/sources.mjs";
+import { reputationRoutes } from "./routes/reputation.mjs";
 import dashboardHtml from "../server/dashboard.html";
 import registerHtml from "../server/register.html";
 import landingHtml from "../web-page/index.html";
@@ -52,5 +54,7 @@ app.route("/", ownersRoutes);
 app.route("/", agentsRoutes);
 app.route("/", verifyRoutes);
 app.route("/", adminRoutes);
+app.route("/", sourcesRoutes);
+app.route("/", reputationRoutes);
 
 export default app;
