@@ -120,7 +120,8 @@ export async function agentsRoutes(fastify, options) {
 
       const { token, issuedAt, expiresAt } = await issueCredentialJWT(
         jwtClaims,
-        masterKey
+        masterKey,
+        "agentidcard.org"
       );
 
       const issuedAtStr = issuedAt.toISOString();
@@ -191,7 +192,7 @@ export async function agentsRoutes(fastify, options) {
         ail_id,
         credential: {
           type: "AIL.SignedCredential.v1",
-          issuer: "22blabs.ai",
+          issuer: "agentidcard.org",
           issuer_key_id: masterKey.kid,
           issued_at: issuedAtStr,
           expires_at: expiresAtStr,

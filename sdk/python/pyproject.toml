@@ -3,14 +3,14 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ail-sdk"
-version = "0.1.0"
-description = "Python SDK for Agent ID Card"
+name = "agentidcard"
+version = "1.0.0"
+description = "Official Python SDK for Agent ID Card - AI agent identity credentials"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "Agent ID Card", email = "contact@agentidcard.org" }]
-keywords = ["agent-identity", "22blabs", "ail", "credential", "jwt", "nft", "erc721"]
+keywords = ["agent-identity", "agentidcard", "ail", "credential", "jwt", "nft", "erc721"]
 dependencies = [
     "cryptography>=42.0.0",
     "PyJWT>=2.8.0",
@@ -26,4 +26,4 @@ dev = ["pytest>=8.0.0"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["ail_sdk*"]
+include = ["agentidcard*"]

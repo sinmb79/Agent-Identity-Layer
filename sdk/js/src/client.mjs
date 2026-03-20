@@ -2,14 +2,10 @@ import { signPayload } from "./crypto.mjs";
 import { jwtVerify, importJWK } from "jose";
 
 /**
- * AilClient — communicates with a 22B Labs AIL Issuance Server.
+ * AilClient communicates with the Agent ID Card issuance server.
  *
  * Usage:
- *   const client = new AilClient({ serverUrl: 'https://api.agentidcard.org' })
- *   const owner  = await client.registerOwner({ email: '...', org: '...' })
- *   await client.verifyEmail({ owner_key_id: ..., otp: owner._dev_otp })
- *   const agent  = await client.registerAgent({ owner_key_id, private_key_jwk, payload })
- *   const result = await client.verify(agent.credential.token)
+ *   const client = new AilClient({ serverUrl: "https://api.agentidcard.org" });
  */
 export class AilClient {
   constructor({ serverUrl = "https://api.agentidcard.org" } = {}) {
@@ -39,12 +35,12 @@ export class AilClient {
   }
 
   // -------------------------------------------------------------------------
-  // Owner registration
+  // Owner registration and login
   // -------------------------------------------------------------------------
 
   /**
    * Register a new owner and receive their EC P-256 keypair.
-   * Store private_key_jwk securely — it is not kept by the server.
+   * Store private_key_jwk securely - it is not kept by the server.
    */
   async registerOwner({ email, org }) {
     return this.#post("/owners/register", { email, org });
@@ -57,6 +53,20 @@ export class AilClient {
     return this.#post("/owners/verify-email", { owner_key_id, otp });
   }
 
+  /**
+   * Request a login OTP for an existing verified owner.
+   */
+  async loginOwner({ email }) {
+    return this.#post("/owners/login", { email });
+  }
+
+  /**
+   * Verify a login OTP and receive a session token for session-based registration.
+   */
+  async verifyLogin({ owner_key_id, otp }) {
+    return this.#post("/owners/verify-login", { owner_key_id, otp });
+  }
+
   // -------------------------------------------------------------------------
   // Agent registration
   // -------------------------------------------------------------------------
@@ -65,16 +75,17 @@ export class AilClient {
    * Register an agent and receive a signed v1 credential.
    *
    * The SDK handles signing the payload with the owner's private key automatically.
-   *
-   * @param {object} options
-   * @param {string} options.owner_key_id
-   * @param {object} options.private_key_jwk   - owner's private key JWK
-   * @param {object} options.payload            - { display_name, role, provider, model, scope }
-   * @returns {Promise<{ ail_id, credential, signal_glyph, behavior_fingerprint }>}
    */
   async registerAgent({ owner_key_id, private_key_jwk, payload }) {
     const owner_signature = await signPayload(payload, private_key_jwk);
     return this.#post("/agents/register", { owner_key_id, payload, owner_signature });
+  }
+
+  /**
+   * Register an agent using a session token from verifyLogin.
+   */
+  async registerAgentWithSession({ session_token, payload }) {
+    return this.#post("/agents/register-session", { session_token, payload });
   }
 
   // -------------------------------------------------------------------------
@@ -121,7 +132,7 @@ export class AilClient {
   }
 
   /**
-   * Fetch the 22B Labs JWKS (public keys for offline verification).
+   * Fetch the Agent ID Card JWKS (public keys for offline verification).
    */
   async getPublicKeys() {
     return this.#get("/keys");
@@ -136,7 +147,7 @@ export async function verifyOffline(token, publicKeyJwk) {
   try {
     const publicKey = await importJWK(publicKeyJwk, "ES256");
     const { payload } = await jwtVerify(token, publicKey, {
-      issuer: "22blabs.ai",
+      issuer: ["agentidcard.org", "22blabs.ai"],
       algorithms: ["ES256"],
     });
     return {

@@ -1,27 +1,10 @@
 """
-AilClient — communicates with a 22B Labs AIL Issuance Server.
+AilClient communicates with the Agent ID Card issuance server.
 
 Usage:
-    from ail_sdk import AilClient
+    from agentidcard import AilClient
 
     client = AilClient(server_url="https://api.agentidcard.org")
-
-    owner = client.register_owner(email="boss@example.com", org="my_org")
-    client.verify_email(owner_key_id=owner["owner_key_id"], otp=owner["_dev_otp"])
-    agent = client.register_agent(
-        owner_key_id=owner["owner_key_id"],
-        private_key_jwk=owner["private_key_jwk"],
-        payload={
-            "display_name": "MyAgent",
-            "role": "assistant",
-            "scope": { "network": "none", "secrets": "none",
-                       "write_access": False,
-                       "approval_policy": { "irreversible_actions": "human_required",
-                                            "external_posting": "human_required",
-                                            "destructive_file_ops": "human_required" } },
-        },
-    )
-    result = client.verify(agent["credential"]["token"])
 """
 
 import requests
@@ -56,19 +39,27 @@ class AilClient:
         return data
 
     # -------------------------------------------------------------------------
-    # Owner registration
+    # Owner registration and login
     # -------------------------------------------------------------------------
 
     def register_owner(self, email: str, org: str | None = None) -> dict:
         """
         Register a new owner and receive their EC P-256 keypair.
-        Store private_key_jwk securely — the server does not keep it.
+        Store private_key_jwk securely - the server does not keep it.
         """
         return self._post("/owners/register", {"email": email, "org": org})
 
     def verify_email(self, owner_key_id: str, otp: str) -> dict:
         """Confirm email ownership with the OTP received after registration."""
         return self._post("/owners/verify-email", {"owner_key_id": owner_key_id, "otp": otp})
+
+    def login_owner(self, email: str) -> dict:
+        """Request a login OTP for an existing verified owner."""
+        return self._post("/owners/login", {"email": email})
+
+    def verify_login(self, owner_key_id: str, otp: str) -> dict:
+        """Verify a login OTP and receive a session token."""
+        return self._post("/owners/verify-login", {"owner_key_id": owner_key_id, "otp": otp})
 
     # -------------------------------------------------------------------------
     # Agent registration
@@ -84,19 +75,18 @@ class AilClient:
         Register an agent and receive a signed v1 credential.
 
         The SDK signs the payload with the owner's private key automatically.
-
-        Args:
-            owner_key_id:    The owner's key ID (from register_owner response).
-            private_key_jwk: The owner's private key JWK (from register_owner response).
-            payload:         { display_name, role, provider?, model?, scope }
-
-        Returns:
-            { ail_id, credential, signal_glyph, behavior_fingerprint }
         """
         owner_signature = sign_payload(payload, private_key_jwk)
         return self._post(
             "/agents/register",
             {"owner_key_id": owner_key_id, "payload": payload, "owner_signature": owner_signature},
+        )
+
+    def register_agent_with_session(self, session_token: str, payload: dict) -> dict:
+        """Register an agent using a session token from verify_login."""
+        return self._post(
+            "/agents/register-session",
+            {"session_token": session_token, "payload": payload},
         )
 
     # -------------------------------------------------------------------------
@@ -134,7 +124,7 @@ class AilClient:
         return verify_offline(token, self._cached_public_key_jwk)
 
     def get_public_keys(self) -> dict:
-        """Fetch the 22B Labs JWKS (public keys for offline verification)."""
+        """Fetch the Agent ID Card JWKS (public keys for offline verification)."""
         return self._get("/keys")
 
 
@@ -147,8 +137,8 @@ def verify_offline(token: str, public_key_jwk: dict) -> dict:
     Verify a credential JWT offline without calling the server.
 
     Args:
-        token:          The credential JWT string.
-        public_key_jwk: The 22B Labs public key JWK (from GET /keys).
+        token: The credential JWT string.
+        public_key_jwk: The Agent ID Card public key JWK (from GET /keys).
 
     Returns:
         { valid, ail_id, display_name, role, owner_org, issued, expires }
@@ -166,7 +156,7 @@ def verify_offline(token: str, public_key_jwk: dict) -> dict:
             options={"require": ["iss", "sub", "exp", "iat"]},
         )
 
-        if payload.get("iss") != "22blabs.ai":
+        if payload.get("iss") not in {"22blabs.ai", "agentidcard.org"}:
             return {"valid": False, "reason": "invalid_issuer"}
 
         import datetime

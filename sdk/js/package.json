@@ -1,23 +1,28 @@
 {
-  "name": "@22blabs/ail-sdk",
-  "version": "0.1.0",
-  "description": "JavaScript SDK for Agent ID Card — credential issuance, verification, and envelope assembly.",
+  "name": "@agentidcard/sdk",
+  "version": "1.0.0",
+  "description": "Official JavaScript SDK for Agent ID Card - AI agent identity credentials",
   "type": "module",
   "main": "./index.mjs",
+  "types": "./index.d.ts",
   "exports": {
-    ".": "./index.mjs"
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.mjs"
+    }
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "files": [
+    "index.d.ts",
     "index.mjs",
     "src/",
     "README.md"
   ],
-  "keywords": ["agent-identity", "22blabs", "ail", "credential", "jwt", "nft", "erc721"],
+  "keywords": ["agent-identity", "agentidcard", "ail", "credential", "jwt", "nft", "erc721"],
   "license": "MIT",
-  "author": "22B Labs <hello@22blabs.ai>",
+  "author": "Agent ID Card <contact@agentidcard.org>",
   "homepage": "https://agentidcard.org",
   "repository": {
     "type": "git",
