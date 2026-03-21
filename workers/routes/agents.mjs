@@ -17,6 +17,9 @@ const BULK_MAX_AGENTS = 20;
 const STANDARD_PRICE_USDC = 2;
 const BULK_TWENTY_TOTAL_USDC = 30;
 const USDC_DECIMALS = 6;
+const FREE_PLAN = "free";
+const STANDARD_PLAN = "standard";
+const BULK_PLAN = "bulk";
 const ERC20_TRANSFER_SELECTOR = "0xa9059cbb";
 const DEFAULT_PAYMENT_RECEIVER = "0x4eead61df800fcfa7a9f698f811a855389f74b6c";
 const SUPPORTED_USDC_ADDRESSES = new Set([
@@ -47,6 +50,10 @@ function getBulkTotalUsd(count) {
 
 function getBulkTotalMinorUnits(count) {
   return BigInt(getBulkTotalUsd(count)) * BigInt(10 ** USDC_DECIMALS);
+}
+
+function getSinglePlan(plan) {
+  return plan === STANDARD_PLAN ? STANDARD_PLAN : plan === BULK_PLAN ? BULK_PLAN : FREE_PLAN;
 }
 
 function formatUsd(amount) {
@@ -100,7 +107,12 @@ async function callRpc(env, method, params) {
   return payload.result;
 }
 
-async function validateBulkPayment(env, txHash, count) {
+async function validateUsdcPayment(env, txHash, {
+  expectedAmountMinorUnits,
+  expectedRecipient,
+  expectedSender = null,
+  amountLabel,
+}) {
   const transaction = await callRpc(env, "eth_getTransactionByHash", [txHash]);
   if (!transaction) {
     throw new HttpError(400, "payment_not_found", "Payment transaction was not found.");
@@ -121,24 +133,49 @@ async function validateBulkPayment(env, txHash, count) {
     throw new HttpError(400, "invalid_payment_data", "Payment transaction is not a valid ERC-20 transfer.");
   }
 
+  if (expectedSender && normalizeAddress(transaction.from) !== normalizeAddress(expectedSender)) {
+    throw new HttpError(400, "invalid_payment_sender", "Payment must be sent from the connected wallet.");
+  }
+
   const recipientSlot = input.slice(10, 74);
   const amountSlot = input.slice(74, 138);
   const recipient = `0x${recipientSlot.slice(24)}`;
   const amount = BigInt(`0x${amountSlot}`);
-  const expectedRecipient = getPaymentReceiver(env);
-  const expectedAmount = getBulkTotalMinorUnits(count);
 
   if (normalizeAddress(recipient) !== expectedRecipient) {
     throw new HttpError(400, "invalid_payment_receiver", "Payment was sent to the wrong receiver.");
   }
 
-  if (amount !== expectedAmount) {
+  if (amount !== expectedAmountMinorUnits) {
     throw new HttpError(
       400,
       "invalid_payment_amount",
-      `Expected ${formatUsd(getBulkTotalUsd(count))} USDC for ${count} agents.`
+      `Expected ${amountLabel}.`
     );
   }
+
+  return transaction;
+}
+
+async function validateBulkPayment(env, txHash, count) {
+  return validateUsdcPayment(env, txHash, {
+    expectedAmountMinorUnits: getBulkTotalMinorUnits(count),
+    expectedRecipient: getPaymentReceiver(env),
+    amountLabel: `${formatUsd(getBulkTotalUsd(count))} USDC for ${count} agents`,
+  });
+}
+
+async function validateStandardPayment(env, txHash, walletAddress) {
+  if (!walletAddress) {
+    throw new HttpError(400, "wallet_required", "Connect MetaMask before paying for an additional agent.");
+  }
+
+  return validateUsdcPayment(env, txHash, {
+    expectedAmountMinorUnits: BigInt(STANDARD_PRICE_USDC) * BigInt(10 ** USDC_DECIMALS),
+    expectedRecipient: getPaymentReceiver(env),
+    expectedSender: walletAddress,
+    amountLabel: `${formatUsd(STANDARD_PRICE_USDC)} USDC for one additional agent`,
+  });
 }
 
 async function getVerifiedOwner(db, owner_key_id, { includePublicKey = false } = {}) {
@@ -179,6 +216,96 @@ async function requireSessionOwner(db, sessionToken) {
   }
 
   return session.owner_id;
+}
+
+async function countOwnerAgents(db, owner_key_id) {
+  const row = await db.prepare(
+    "SELECT COUNT(*) AS count FROM agents WHERE owner_key_id = ?"
+  ).bind(owner_key_id).first();
+
+  return Number(row?.count ?? 0);
+}
+
+async function ensurePaymentAvailable(db, txHash) {
+  const existing = await db.prepare(
+    "SELECT tx_hash FROM payment_receipts WHERE tx_hash = ?"
+  ).bind(txHash).first();
+
+  if (existing) {
+    throw new HttpError(409, "payment_already_used", "This payment transaction has already been used.");
+  }
+}
+
+async function reservePaymentReceipt(db, { txHash, owner_key_id, plan, amountUsd, agentCount = 1 }) {
+  try {
+    await db.prepare(`
+      INSERT INTO payment_receipts (tx_hash, owner_key_id, plan, amount_usdc, agent_count, recorded_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(
+      txHash,
+      owner_key_id,
+      plan,
+      amountUsd,
+      agentCount,
+      new Date().toISOString()
+    ).run();
+  } catch (err) {
+    const message = String(err?.message ?? "").toLowerCase();
+    if (message.includes("unique")) {
+      throw new HttpError(409, "payment_already_used", "This payment transaction has already been used.");
+    }
+    throw err;
+  }
+}
+
+async function releasePaymentReceipt(db, txHash) {
+  if (!txHash) return;
+
+  try {
+    await db.prepare("DELETE FROM payment_receipts WHERE tx_hash = ?").bind(txHash).run();
+  } catch (err) {
+    console.error(`[payments] failed to release ${txHash}:`, err.message);
+  }
+}
+
+async function ensureSingleAgentPlanEligibility({ db, env, owner_key_id, payload }) {
+  const plan = getSinglePlan(payload?.plan);
+  const ownerAgentCount = await countOwnerAgents(db, owner_key_id);
+
+  if (plan === BULK_PLAN) {
+    throw new HttpError(400, "invalid_plan", "Bulk registrations must use /agents/register-bulk.");
+  }
+
+  if (plan === FREE_PLAN && ownerAgentCount > 0) {
+    throw new HttpError(
+      402,
+      "free_plan_exhausted",
+      "Free plan is only available for your first agent. Additional agents require a paid plan."
+    );
+  }
+
+  if (plan !== STANDARD_PLAN) {
+    return { plan, paymentTxHash: null, amountUsd: 0 };
+  }
+
+  if (!payload?.payment_tx_hash) {
+    throw new HttpError(
+      402,
+      "payment_required",
+      ownerAgentCount > 0
+        ? "Additional agents require a confirmed $2 USDC payment."
+        : "Complete the $2 USDC payment before registering this agent."
+    );
+  }
+
+  await ensurePaymentAvailable(db, payload.payment_tx_hash);
+  await validateStandardPayment(env, payload.payment_tx_hash, payload.wallet_address);
+
+  return {
+    plan,
+    paymentTxHash: payload.payment_tx_hash,
+    amountUsd: STANDARD_PRICE_USDC,
+  };
 }
 
 async function createAgentRegistration({
@@ -318,6 +445,7 @@ agentsRoutes.post("/agents/register", async (c) => {
   const db = c.env.DB;
   const masterKey = c.get("masterKey");
   if (!masterKey) return c.json({ error: "master_key_not_configured" }, 500);
+  let reservedPaymentTxHash = null;
 
   try {
     const owner = await getVerifiedOwner(db, owner_key_id, { includePublicKey: true });
@@ -329,6 +457,23 @@ agentsRoutes.post("/agents/register", async (c) => {
         error: "invalid_signature",
         message: "Owner signature verification failed.",
       }, 401);
+    }
+
+    const planState = await ensureSingleAgentPlanEligibility({
+      db,
+      env: c.env,
+      owner_key_id,
+      payload,
+    });
+
+    if (planState.paymentTxHash) {
+      await reservePaymentReceipt(db, {
+        txHash: planState.paymentTxHash,
+        owner_key_id,
+        plan: planState.plan,
+        amountUsd: planState.amountUsd,
+      });
+      reservedPaymentTxHash = planState.paymentTxHash;
     }
 
     const agent = await createAgentRegistration({
@@ -344,6 +489,9 @@ agentsRoutes.post("/agents/register", async (c) => {
     console.log(`Registered agent ${agent.ail_id} (${payload.display_name}) for owner ${owner_key_id}`);
     return c.json(agent.response, 201);
   } catch (err) {
+    if (reservedPaymentTxHash) {
+      await releasePaymentReceipt(db, reservedPaymentTxHash);
+    }
     if (err instanceof HttpError) {
       return c.json({ error: err.error, message: err.message }, err.status);
     }
@@ -369,10 +517,28 @@ agentsRoutes.post("/agents/register-session", async (c) => {
   const db = c.env.DB;
   const masterKey = c.get("masterKey");
   if (!masterKey) return c.json({ error: "master_key_not_configured" }, 500);
+  let reservedPaymentTxHash = null;
 
   try {
     const owner_key_id = await requireSessionOwner(db, session_token);
     const owner = await getVerifiedOwner(db, owner_key_id);
+
+    const planState = await ensureSingleAgentPlanEligibility({
+      db,
+      env: c.env,
+      owner_key_id,
+      payload,
+    });
+
+    if (planState.paymentTxHash) {
+      await reservePaymentReceipt(db, {
+        txHash: planState.paymentTxHash,
+        owner_key_id,
+        plan: planState.plan,
+        amountUsd: planState.amountUsd,
+      });
+      reservedPaymentTxHash = planState.paymentTxHash;
+    }
 
     const agent = await createAgentRegistration({
       db,
@@ -387,6 +553,9 @@ agentsRoutes.post("/agents/register-session", async (c) => {
     console.log(`Registered agent ${agent.ail_id} (${payload.display_name}) for owner ${owner_key_id} via session`);
     return c.json(agent.response, 201);
   } catch (err) {
+    if (reservedPaymentTxHash) {
+      await releasePaymentReceipt(db, reservedPaymentTxHash);
+    }
     if (err instanceof HttpError) {
       return c.json({ error: err.error, message: err.message }, err.status);
     }
@@ -424,7 +593,15 @@ agentsRoutes.post("/agents/register-bulk", async (c) => {
     const owner_key_id = await requireSessionOwner(db, session_token);
     const owner = await getVerifiedOwner(db, owner_key_id);
 
+    await ensurePaymentAvailable(db, tx_hash);
     await validateBulkPayment(c.env, tx_hash, agents.length);
+    await reservePaymentReceipt(db, {
+      txHash: tx_hash,
+      owner_key_id,
+      plan: BULK_PLAN,
+      amountUsd: getBulkTotalUsd(agents.length),
+      agentCount: agents.length,
+    });
 
     const createdAgents = [];
     try {
@@ -443,6 +620,7 @@ agentsRoutes.post("/agents/register-bulk", async (c) => {
       }
     } catch (err) {
       await rollbackBulkRegistrations(db, c.env, createdAgents);
+      await releasePaymentReceipt(db, tx_hash);
       throw err;
     }
 

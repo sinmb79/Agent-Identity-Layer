@@ -4,6 +4,57 @@ import { sendOwnerOtp } from "../lib/email.mjs";
 
 export const ownersRoutes = new Hono();
 
+async function loadOwnerAgents(db, owner_key_id) {
+  const agents = await db.prepare(
+    `SELECT ail_id, display_name, role, provider, model, issued_at, expires_at, revoked
+     FROM agents WHERE owner_key_id = ? ORDER BY issued_at DESC`
+  ).bind(owner_key_id).all();
+
+  return agents.results || [];
+}
+
+async function buildSessionResponse(db, sessionToken, owner_key_id) {
+  const owner = await db.prepare(
+    "SELECT id, email, org, email_verified FROM owners WHERE id = ?"
+  ).bind(owner_key_id).first();
+
+  if (!owner) {
+    return null;
+  }
+
+  return {
+    authenticated: true,
+    session_token: sessionToken,
+    owner: {
+      owner_key_id: owner.id,
+      email: owner.email,
+      org: owner.org,
+    },
+    agents: await loadOwnerAgents(db, owner_key_id),
+  };
+}
+
+async function requireSessionState(db, sessionToken) {
+  const session = await db.prepare(
+    "SELECT owner_id, expires_at FROM owner_sessions WHERE token = ?"
+  ).bind(sessionToken).first();
+
+  if (!session) {
+    return { error: "invalid_session", status: 401, message: "Session not found or expired." };
+  }
+
+  if (new Date(session.expires_at) < new Date()) {
+    return { error: "session_expired", status: 401, message: "Session expired. Please login again." };
+  }
+
+  const snapshot = await buildSessionResponse(db, sessionToken, session.owner_id);
+  if (!snapshot) {
+    return { error: "owner_not_found", status: 404, message: "Owner not found." };
+  }
+
+  return snapshot;
+}
+
 /**
  * POST /owners/register
  *
@@ -177,20 +228,22 @@ ownersRoutes.post("/owners/verify-login", async (c) => {
     "INSERT INTO owner_sessions (token, owner_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
   ).bind(sessionToken, owner_key_id, new Date().toISOString(), sessionExpires).run();
 
-  // Fetch owner's agents
-  const agents = await db.prepare(
-    `SELECT ail_id, display_name, role, provider, model, issued_at, expires_at, revoked
-     FROM agents WHERE owner_key_id = ? ORDER BY issued_at DESC`
-  ).bind(owner_key_id).all();
+  return c.json(await buildSessionResponse(db, sessionToken, owner.id));
+});
 
-  return c.json({
-    authenticated: true,
-    session_token: sessionToken,
-    owner: {
-      owner_key_id: owner.id,
-      email: owner.email,
-      org: owner.org,
-    },
-    agents: agents.results || [],
-  });
+/**
+ * POST /owners/session
+ *
+ * Restore an authenticated owner session from a stored session token.
+ */
+ownersRoutes.post("/owners/session", async (c) => {
+  const { session_token } = await c.req.json();
+  if (!session_token) return c.json({ error: "missing_fields" }, 400);
+
+  const sessionState = await requireSessionState(c.env.DB, session_token);
+  if (!sessionState.authenticated) {
+    return c.json({ error: sessionState.error, message: sessionState.message }, sessionState.status);
+  }
+
+  return c.json(sessionState);
 });

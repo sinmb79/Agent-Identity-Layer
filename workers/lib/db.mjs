@@ -68,6 +68,16 @@ export async function initSchema(db) {
       )
     `),
     db.prepare(`
+      CREATE TABLE IF NOT EXISTS payment_receipts (
+        tx_hash     TEXT PRIMARY KEY,
+        owner_key_id TEXT NOT NULL,
+        plan        TEXT NOT NULL,
+        amount_usdc REAL NOT NULL,
+        agent_count INTEGER NOT NULL DEFAULT 1,
+        recorded_at TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
       CREATE TABLE IF NOT EXISTS registered_sources (
         id                  TEXT PRIMARY KEY,
         name                TEXT UNIQUE NOT NULL,
@@ -196,6 +206,10 @@ export async function initSchema(db) {
     db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_auth_codes_expiry
       ON auth_codes(expires_at)
+    `),
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_payment_receipts_owner
+      ON payment_receipts(owner_key_id)
     `),
   ]);
 
