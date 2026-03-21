@@ -1,6 +1,6 @@
 {
   "name": "@agentidcard/sdk",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Official JavaScript SDK for Agent ID Card - AI agent identity credentials",
   "type": "module",
   "main": "./index.mjs",
