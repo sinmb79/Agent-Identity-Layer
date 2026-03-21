@@ -18,19 +18,21 @@ class AilClient:
         self._session = requests.Session()
         self._session.headers.update({"Content-Type": "application/json"})
 
-    def _post(self, path: str, body: dict) -> dict:
-        res = self._session.post(f"{self.server_url}{path}", json=body)
+    def _post(self, path: str, body: dict, headers: dict | None = None) -> dict:
+        res = self._session.post(f"{self.server_url}{path}", json=body, headers=headers)
         data = res.json()
         if not res.ok:
             msg = data.get("message") or data.get("error") or f"HTTP {res.status_code}"
             raise AilError(msg, code=data.get("error"), status=res.status_code)
         return data
 
-    def _get(self, path: str) -> dict:
-        res = self._session.get(f"{self.server_url}{path}")
+    def _get(self, path: str, headers: dict | None = None) -> dict:
+        res = self._session.get(f"{self.server_url}{path}", headers=headers)
+        data = res.json()
         if not res.ok:
-            raise AilError(f"HTTP {res.status_code}", status=res.status_code)
-        return res.json()
+            msg = data.get("message") or data.get("error") or f"HTTP {res.status_code}"
+            raise AilError(msg, code=data.get("error"), status=res.status_code)
+        return data
 
     def _delete(self, path: str, body: dict) -> dict:
         res = self._session.delete(f"{self.server_url}{path}", json=body)
@@ -125,6 +127,71 @@ class AilClient:
     def verify(self, token: str) -> dict:
         """Verify a credential online (calls the server)."""
         return self._post("/verify", {"token": token})
+
+    def get_auth_url(
+        self,
+        client_id: str,
+        redirect_uri: str,
+        scope: str = "identity",
+        state: str = "",
+    ) -> str:
+        params = urlencode({
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "scope": scope,
+            "state": state,
+        })
+        return f"{self.server_url}/auth/verify?{params}"
+
+    def register_client(
+        self,
+        name: str,
+        allowed_origins: list[str],
+        redirect_uris: list[str],
+        admin_api_key: str,
+    ) -> dict:
+        return self._post(
+            "/auth/clients/register",
+            {
+                "name": name,
+                "allowed_origins": allowed_origins,
+                "redirect_uris": redirect_uris,
+            },
+            headers={"X-Admin-Key": admin_api_key},
+        )
+
+    def exchange_auth_code(
+        self,
+        code: str,
+        client_id: str,
+        client_secret: str,
+        origin: str | None = None,
+    ) -> dict:
+        headers = {"Origin": origin} if origin else None
+        return self._post(
+            "/auth/exchange",
+            {
+                "code": code,
+                "client_id": client_id,
+                "client_secret": client_secret,
+            },
+            headers=headers,
+        )
+
+    def verify_quick(
+        self,
+        token: str,
+        client_id: str,
+        client_secret: str,
+        origin: str | None = None,
+    ) -> dict:
+        headers = {"Authorization": f"Bearer {client_secret}"}
+        if origin:
+            headers["Origin"] = origin
+        return self._get(
+            self._with_query("/auth/verify-quick", {"token": token, "client_id": client_id}),
+            headers=headers,
+        )
 
     def verify_offline(self, token: str) -> dict:
         """

@@ -22,10 +22,10 @@ export class AilClient {
     return query ? `${path}?${query}` : path;
   }
 
-  async #post(path, body) {
+  async #post(path, body, headers = {}) {
     const res = await fetch(`${this.serverUrl}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...headers },
       body: JSON.stringify(body),
     });
     const data = await res.json();
@@ -38,10 +38,16 @@ export class AilClient {
     return data;
   }
 
-  async #get(path) {
-    const res = await fetch(`${this.serverUrl}${path}`);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+  async #get(path, headers = {}) {
+    const res = await fetch(`${this.serverUrl}${path}`, { headers });
+    const data = await res.json();
+    if (!res.ok) {
+      const err = new Error(data.message ?? data.error ?? `HTTP ${res.status}`);
+      err.code = data.error;
+      err.status = res.status;
+      throw err;
+    }
+    return data;
   }
 
   // -------------------------------------------------------------------------
@@ -128,6 +134,39 @@ export class AilClient {
    */
   async verify(token) {
     return this.#post("/verify", { token });
+  }
+
+  getAuthUrl({ client_id, redirect_uri, scope = "identity", state = "" }) {
+    const params = new URLSearchParams({
+      client_id,
+      redirect_uri,
+      scope,
+      state,
+    });
+    return `${this.serverUrl}/auth/verify?${params}`;
+  }
+
+  async registerClient({ name, allowed_origins, redirect_uris, admin_api_key }) {
+    return this.#post("/auth/clients/register", {
+      name,
+      allowed_origins,
+      redirect_uris,
+    }, {
+      "X-Admin-Key": admin_api_key,
+    });
+  }
+
+  async exchangeAuthCode({ code, client_id, client_secret, origin }) {
+    const headers = {};
+    if (origin) headers.Origin = origin;
+    return this.#post("/auth/exchange", { code, client_id, client_secret }, headers);
+  }
+
+  async verifyQuick({ token, client_id, client_secret, origin }) {
+    const path = this.#withQuery("/auth/verify-quick", { token, client_id });
+    const headers = { Authorization: `Bearer ${client_secret}` };
+    if (origin) headers.Origin = origin;
+    return this.#get(path, headers);
   }
 
   /**

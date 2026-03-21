@@ -71,6 +71,27 @@ export interface ReputationQueryParams {
   dimension?: string;
 }
 
+export interface ClientRegistrationOptions {
+  name: string;
+  allowed_origins: string[];
+  redirect_uris: string[];
+  admin_api_key: string;
+}
+
+export interface AuthCodeExchangeOptions {
+  code: string;
+  client_id: string;
+  client_secret: string;
+  origin?: string;
+}
+
+export interface QuickVerifyOptions {
+  token: string;
+  client_id: string;
+  client_secret: string;
+  origin?: string;
+}
+
 export declare class AilClient {
   constructor(options?: AilClientOptions);
   registerOwner(options: { email: string; org?: string }): Promise<OwnerRegistrationResponse>;
@@ -92,6 +113,15 @@ export declare class AilClient {
     private_key_jwk: Jwk;
   }): Promise<Record<string, unknown>>;
   verify(token: string): Promise<Record<string, unknown>>;
+  getAuthUrl(options: {
+    client_id: string;
+    redirect_uri: string;
+    scope?: string;
+    state?: string;
+  }): string;
+  registerClient(options: ClientRegistrationOptions): Promise<Record<string, unknown>>;
+  exchangeAuthCode(options: AuthCodeExchangeOptions): Promise<Record<string, unknown>>;
+  verifyQuick(options: QuickVerifyOptions): Promise<Record<string, unknown>>;
   verifyOffline(token: string): Promise<OfflineVerificationResult>;
   getPublicKeys(): Promise<Record<string, unknown>>;
   getReputation(ailId: string): Promise<Record<string, unknown>>;

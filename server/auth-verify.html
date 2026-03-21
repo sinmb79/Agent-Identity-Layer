@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Agent ID Card</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0f14; --surface: #161b25; --surface-2: #111620; --border: #1e2535;
+      --accent: #4f8ef7; --green: #22c55e; --red: #ef4444; --text: #e2e8f0; --muted: #64748b;
+      --font: "Inter", system-ui, sans-serif; --mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(79,142,247,0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(34,197,94,0.08), transparent 20%),
+        var(--bg);
+      color: var(--text);
+      font: 14px/1.6 var(--font);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(100%, 560px);
+      background: rgba(22, 27, 37, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.35);
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(79,142,247,0.28);
+      background: rgba(79,142,247,0.08);
+      color: #9bbcff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    h1 { font-size: clamp(28px, 5vw, 36px); line-height: 1.05; margin-bottom: 10px; }
+    .subtitle { color: var(--muted); margin-bottom: 24px; }
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .card.hidden { display: none; }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    textarea, input[type="file"] {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #0b111a;
+      color: var(--text);
+      font: inherit;
+    }
+    textarea {
+      min-height: 140px;
+      resize: vertical;
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    input[type="file"] { padding: 10px 12px; }
+    .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+    .btn {
+      appearance: none;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, opacity 0.18s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-success { background: var(--green); color: #08110d; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .status {
+      min-height: 22px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .status.error { color: var(--red); }
+    .status.success { color: var(--green); }
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .agent-row {
+      background: rgba(79,142,247,0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .agent-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .agent-row strong { font-size: 14px; word-break: break-word; }
+    .scope-list {
+      margin-top: 16px;
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .scope-list li + li { margin-top: 4px; }
+    .footer {
+      margin-top: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+    @media (max-width: 560px) {
+      body { padding: 12px; }
+      .shell { padding: 20px; }
+      .agent-grid { grid-template-columns: 1fr; }
+      .actions { flex-direction: column; }
+      .btn { width: 100%; }
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="shell">
+    <div class="eyebrow">Powered by Agent ID Card</div>
+    <h1>Verify Your Agent ID Card</h1>
+    <p class="subtitle"><strong id="client-name">__CLIENT_NAME__</strong> is requesting verification.</p>
+
+    <section id="verify-step" class="card">
+      <label for="token-input">Paste your credential JWT</label>
+      <textarea id="token-input" placeholder="eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+
+      <div style="height: 14px"></div>
+
+      <label for="token-file">Or upload your credential file (.jwt)</label>
+      <input id="token-file" type="file" accept=".jwt,text/plain">
+
+      <div class="actions">
+        <button id="verify-button" class="btn btn-primary" type="button">Verify</button>
+      </div>
+      <div id="verify-status" class="status"></div>
+    </section>
+
+    <section id="result-step" class="card hidden">
+      <div class="status success">Credential verified. Review the shared scope before authorizing.</div>
+
+      <div class="agent-grid">
+        <div class="agent-row"><span>AIL ID</span><strong id="agent-ail-id">-</strong></div>
+        <div class="agent-row"><span>Display Name</span><strong id="agent-display-name">-</strong></div>
+        <div class="agent-row"><span>Role</span><strong id="agent-role">-</strong></div>
+        <div class="agent-row"><span>Owner</span><strong id="agent-owner-org">-</strong></div>
+      </div>
+
+      <ul id="scope-list" class="scope-list"></ul>
+
+      <div class="actions">
+        <button id="authorize-button" class="btn btn-success" type="button" disabled>Authorize</button>
+        <button id="deny-button" class="btn btn-secondary" type="button">Deny</button>
+      </div>
+      <div id="result-status" class="status"></div>
+    </section>
+
+    <div class="footer">Credential verification happens server-side before any auth code is issued.</div>
+  </main>
+
+  <script>
+    window.__AIL_AUTH_BOOTSTRAP__ = __AUTH_BOOTSTRAP__;
+  </script>
+  <script>
+    (() => {
+      const config = window.__AIL_AUTH_BOOTSTRAP__;
+      const tokenInput = document.getElementById("token-input");
+      const tokenFile = document.getElementById("token-file");
+      const verifyButton = document.getElementById("verify-button");
+      const authorizeButton = document.getElementById("authorize-button");
+      const denyButton = document.getElementById("deny-button");
+      const verifyStatus = document.getElementById("verify-status");
+      const resultStatus = document.getElementById("result-status");
+      const verifyStep = document.getElementById("verify-step");
+      const resultStep = document.getElementById("result-step");
+      const scopeList = document.getElementById("scope-list");
+      let verifiedResult = null;
+
+      function setStatus(node, message, kind = "") {
+        node.textContent = message || "";
+        node.className = kind ? `status ${kind}` : "status";
+      }
+
+      function scopeItems(scope) {
+        switch (scope) {
+          case "identity+reputation":
+            return [
+              "Identity details: AIL ID, display name, role, owner organization",
+              "Reputation summary: overall score, top skill, achievements"
+            ];
+          case "full":
+            return [
+              "Identity details: AIL ID, display name, role, owner organization",
+              "Reputation summary and badge preview",
+              "Issued and expiry timestamps"
+            ];
+          default:
+            return [
+              "Identity details: AIL ID, display name, role, owner organization"
+            ];
+        }
+      }
+
+      function renderResult(result) {
+        document.getElementById("agent-ail-id").textContent = result.ail_id || "-";
+        document.getElementById("agent-display-name").textContent = result.display_name || "-";
+        document.getElementById("agent-role").textContent = result.role || "-";
+        document.getElementById("agent-owner-org").textContent = result.owner_org || "Independent";
+        scopeList.innerHTML = scopeItems(config.scope).map((item) => `<li>${item}</li>`).join("");
+      }
+
+      tokenFile?.addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        tokenInput.value = await file.text();
+      });
+
+      verifyButton?.addEventListener("click", async () => {
+        const token = tokenInput.value.trim();
+        if (!token) {
+          setStatus(verifyStatus, "Paste or upload a credential token first.", "error");
+          return;
+        }
+
+        verifyButton.disabled = true;
+        setStatus(verifyStatus, "Verifying credential...");
+
+        try {
+          const response = await fetch("/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          });
+          const result = await response.json();
+
+          if (!response.ok || !result.valid) {
+            throw new Error(result.reason || result.error || "Invalid or expired credential");
+          }
+
+          verifiedResult = result;
+          renderResult(result);
+          verifyStep.classList.add("hidden");
+          resultStep.classList.remove("hidden");
+          authorizeButton.disabled = false;
+          setStatus(verifyStatus, "");
+          setStatus(resultStatus, "Credential verified. You can authorize this site now.", "success");
+        } catch (error) {
+          setStatus(verifyStatus, error.message || "Verification failed", "error");
+        } finally {
+          verifyButton.disabled = false;
+        }
+      });
+
+      authorizeButton?.addEventListener("click", async () => {
+        if (!verifiedResult) return;
+
+        authorizeButton.disabled = true;
+        setStatus(resultStatus, "Preparing one-time auth code...");
+
+        try {
+          const response = await fetch("/auth/authorize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token: tokenInput.value.trim(),
+              client_id: config.client_id,
+              redirect_uri: config.redirect_uri,
+              scope: config.scope,
+              state: config.state,
+            }),
+          });
+          const result = await response.json();
+
+          if (!response.ok || !result.code) {
+            throw new Error(result.error || "Failed to create auth code");
+          }
+
+          if (window.opener && result.post_message_origin) {
+            window.opener.postMessage({
+              type: "ail-verify-result",
+              code: result.code,
+              state: config.state,
+            }, result.post_message_origin);
+            window.close();
+            return;
+          }
+
+          window.location.href = result.redirect_url;
+        } catch (error) {
+          authorizeButton.disabled = false;
+          setStatus(resultStatus, error.message || "Authorization failed", "error");
+        }
+      });
+
+      denyButton?.addEventListener("click", () => {
+        const redirectUrl = new URL(config.redirect_uri);
+        redirectUrl.searchParams.set("error", "access_denied");
+        if (config.state) {
+          redirectUrl.searchParams.set("state", config.state);
+        }
+
+        if (window.opener) {
+          window.opener.postMessage({
+            type: "ail-verify-error",
+            error: "access_denied",
+            state: config.state,
+          }, config.redirect_origin);
+          window.close();
+          return;
+        }
+
+        window.location.href = redirectUrl.toString();
+      });
+    })();
+  </script>
+</body>
+</html>

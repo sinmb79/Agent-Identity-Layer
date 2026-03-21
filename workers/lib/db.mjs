@@ -143,6 +143,29 @@ export async function initSchema(db) {
       )
     `),
     db.prepare(`
+      CREATE TABLE IF NOT EXISTS auth_codes (
+        code         TEXT PRIMARY KEY,
+        ail_id       TEXT NOT NULL,
+        client_id    TEXT NOT NULL,
+        redirect_uri TEXT NOT NULL,
+        scope        TEXT NOT NULL DEFAULT 'identity',
+        result_json  TEXT NOT NULL,
+        created_at   TEXT NOT NULL,
+        used         INTEGER NOT NULL DEFAULT 0,
+        expires_at   TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS registered_clients (
+        client_id       TEXT PRIMARY KEY,
+        client_secret   TEXT NOT NULL,
+        name            TEXT NOT NULL,
+        allowed_origins TEXT NOT NULL,
+        redirect_uris   TEXT NOT NULL,
+        created_at      TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_reputation_agent
       ON reputation_records(agent_id)
     `),
@@ -169,6 +192,10 @@ export async function initSchema(db) {
     db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_season_reports_lookup
       ON season_reports(agent_id, season)
+    `),
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_auth_codes_expiry
+      ON auth_codes(expires_at)
     `),
   ]);
 

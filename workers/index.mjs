@@ -14,8 +14,11 @@ import { adminRoutes } from "./routes/admin.mjs";
 import { sourcesRoutes } from "./routes/sources.mjs";
 import { reputationRoutes } from "./routes/reputation.mjs";
 import { profileRoutes } from "./routes/profile.mjs";
+import { authRoutes } from "./routes/auth.mjs";
 import dashboardHtml from "../server/dashboard.html";
 import registerHtml from "../server/register.html";
+import widgetJs from "../server/widget.js";
+import badgeJs from "../server/badge.js";
 import landingHtml from "../web-page/index.html";
 
 const app = new Hono();
@@ -50,6 +53,19 @@ app.get("/dashboard", (c) => c.html(dashboardHtml));
 // Public registration UI
 app.get("/register", (c) => c.html(registerHtml));
 
+// Public embeddable assets
+app.get("/widget.js", (c) => {
+  c.header("Content-Type", "application/javascript; charset=utf-8");
+  c.header("Access-Control-Allow-Origin", "*");
+  return c.body(widgetJs);
+});
+
+app.get("/badge.js", (c) => {
+  c.header("Content-Type", "application/javascript; charset=utf-8");
+  c.header("Access-Control-Allow-Origin", "*");
+  return c.body(badgeJs);
+});
+
 // Routes
 app.route("/", ownersRoutes);
 app.route("/", agentsRoutes);
@@ -58,5 +74,6 @@ app.route("/", adminRoutes);
 app.route("/", sourcesRoutes);
 app.route("/", reputationRoutes);
 app.route("/", profileRoutes);
+app.route("/", authRoutes);
 
 export default app;
