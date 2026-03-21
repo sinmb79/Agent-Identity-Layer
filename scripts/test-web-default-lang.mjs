@@ -29,4 +29,16 @@ assert.match(
   "landing page should apply the initial language on first render"
 );
 
+assert.doesNotMatch(
+  html,
+  /href="\/register"/,
+  "landing page should not use a relative /register link from the marketing site"
+);
+
+assert.match(
+  html,
+  /href="https:\/\/api\.agentidcard\.org\/register"/,
+  "landing page should send registration CTAs to the API-hosted register page"
+);
+
 console.log("Landing page default language test passed");
