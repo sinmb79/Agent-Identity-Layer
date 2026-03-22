@@ -71,10 +71,18 @@ assert.match(
   "workers entry should register the /developers route"
 );
 
-const developersLinkMatches = landingHtml.match(/href="\/developers"/g) ?? [];
+const developersLinkMatches =
+  landingHtml.match(/href="https:\/\/api\.agentidcard\.org\/developers"/g) ?? [];
 assert.ok(
   developersLinkMatches.length >= 2,
-  "landing page should include /developers links in both nav and footer"
+  "landing page should include API-hosted developers links in both nav and footer"
+);
+
+const dashboardLinkMatches =
+  landingHtml.match(/href="https:\/\/api\.agentidcard\.org\/dashboard"/g) ?? [];
+assert.ok(
+  dashboardLinkMatches.length >= 2,
+  "landing page should include API-hosted dashboard links in both nav and footer"
 );
 
 assert.match(
