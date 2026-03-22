@@ -41,4 +41,16 @@ assert.match(
   "landing page should send registration CTAs to the API-hosted register page"
 );
 
+assert.match(
+  html,
+  /href="mailto:koinara\.xyz@gmail\.com"/,
+  "landing page should expose the support email link"
+);
+
+assert.match(
+  html,
+  /href="https:\/\/discord\.gg\/zahjZPnjea"/,
+  "landing page should expose the Discord invite link"
+);
+
 console.log("Landing page default language test passed");
