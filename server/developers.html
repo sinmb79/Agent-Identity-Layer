@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent ID Card Developers</title>
+  <meta name="description" content="Integration guide for Agent ID Card authentication, widget embeds, server-side verification, and SDK usage.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0d0f14;
+      --surface: #161b25;
+      --surface-2: #111620;
+      --surface-3: #0d1117;
+      --border: #1e2535;
+      --border-strong: #30363d;
+      --accent: #4f8ef7;
+      --accent-soft: rgba(79, 142, 247, 0.14);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --green: #22c55e;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      --font: "Inter", system-ui, sans-serif;
+      --mono: "JetBrains Mono", "Fira Code", monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(79, 142, 247, 0.13), transparent 30%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.08), transparent 20%),
+        var(--bg);
+      color: var(--text);
+      font: 15px/1.65 var(--font);
+    }
+    a { color: inherit; text-decoration: none; }
+    .page { max-width: 1240px; margin: 0 auto; padding: 32px 20px 80px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -0.02em; }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      border: 1px solid rgba(79, 142, 247, 0.28);
+      background: rgba(79, 142, 247, 0.08);
+      color: var(--accent);
+      font-size: 18px;
+    }
+    .top-actions { display: flex; align-items: center; gap: 12px; }
+    .ghost-link, .primary-link, .menu-button {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+      font-weight: 700;
+      font-size: 14px;
+      transition: border-color 0.18s ease, transform 0.18s ease, background 0.18s ease;
+    }
+    .ghost-link:hover, .primary-link:hover, .menu-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(79, 142, 247, 0.45);
+    }
+    .primary-link {
+      background: var(--accent);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 16px 40px rgba(79, 142, 247, 0.18);
+    }
+    .menu-button { display: none; background: transparent; color: var(--text); cursor: pointer; }
+    .hero {
+      background: linear-gradient(180deg, rgba(22, 27, 37, 0.96), rgba(17, 22, 32, 0.96));
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 34px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(79, 142, 247, 0.28);
+      color: #a9c4ff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .hero h1 { margin: 0 0 12px; font-size: clamp(36px, 6vw, 52px); line-height: 1.04; letter-spacing: -0.04em; }
+    .hero p { max-width: 720px; margin: 0; color: var(--muted); font-size: 17px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; color: var(--muted); font-size: 14px; }
+    .hero-meta code { font-family: var(--mono); font-size: 13px; color: #c9d7f2; }
+    .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
+    .backdrop { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 20; }
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      background: rgba(17, 22, 32, 0.94);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
+    }
+    .sidebar h2 { margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .sidebar nav { display: grid; gap: 6px; }
+    .sidebar a { display: block; padding: 9px 12px; border-radius: 12px; color: var(--muted); transition: background 0.18s ease, color 0.18s ease; }
+    .sidebar a:hover, .sidebar a.active { background: rgba(79, 142, 247, 0.1); color: var(--text); }
+    .content { max-width: 860px; display: grid; gap: 18px; }
+    .section {
+      background: rgba(22, 27, 37, 0.96);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .section h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 28px; letter-spacing: -0.03em; }
+    .section h3 { margin: 22px 0 10px; font-size: 18px; }
+    .section p, .section li { color: var(--muted); }
+    .section strong { color: var(--text); }
+    .anchor-link { color: var(--accent); font-size: 16px; opacity: 0.8; }
+    .callout { margin: 16px 0 0; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(79, 142, 247, 0.24); background: rgba(79, 142, 247, 0.08); }
+    .callout strong { display: block; margin-bottom: 4px; }
+    .tab-row { display: inline-flex; gap: 8px; padding: 6px; border: 1px solid var(--border); border-radius: 14px; background: rgba(13, 17, 23, 0.7); margin-bottom: 14px; }
+    .tab-button { border: 0; border-radius: 10px; background: transparent; color: var(--muted); padding: 9px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+    .tab-button.active { background: rgba(79, 142, 247, 0.12); color: var(--text); }
+    [data-tab-panel][hidden] { display: none; }
+    .code-shell { margin: 16px 0; border-radius: 18px; border: 1px solid var(--border-strong); overflow: hidden; background: var(--surface-3); }
+    .code-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border-strong); background: #11161f; }
+    .code-label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+    .copy-button { border: 1px solid var(--border); background: rgba(79, 142, 247, 0.08); color: var(--text); border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+    pre { margin: 0; padding: 16px; overflow: auto; font: 13px/1.65 var(--mono); color: #dbe7fb; white-space: pre-wrap; word-break: break-word; }
+    code { font-family: var(--mono); }
+    .inline-code { padding: 2px 6px; border-radius: 8px; background: rgba(79, 142, 247, 0.1); border: 1px solid rgba(79, 142, 247, 0.16); color: #dce8ff; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; font-size: 14px; }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--text); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; background: rgba(13, 17, 23, 0.7); }
+    .checklist { display: grid; gap: 10px; padding: 0; list-style: none; }
+    .checklist li { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+    .checkmark { color: var(--green); font-weight: 800; }
+    .footer { margin-top: 24px; text-align: center; color: var(--muted); font-size: 13px; }
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; }
+      .menu-button { display: inline-flex; align-items: center; justify-content: center; }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: min(320px, 86vw);
+        height: 100vh;
+        max-height: none;
+        border-radius: 0 22px 22px 0;
+        transform: translateX(-102%);
+        transition: transform 0.22s ease;
+        z-index: 30;
+      }
+      .sidebar.open { transform: translateX(0); }
+      .backdrop.open { display: block; }
+    }
+    @media (max-width: 640px) {
+      .page { padding: 18px 14px 56px; }
+      .hero, .section { padding: 22px; border-radius: 20px; }
+      .topbar { align-items: flex-start; }
+      .top-actions { width: 100%; justify-content: flex-end; }
+      .section h2 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="nav-backdrop" class="backdrop"></div>
+  <div class="page">
+    <header class="topbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">AI</span>
+        <span>Agent ID Card</span>
+      </a>
+      <div class="top-actions">
+        <button id="menu-toggle" class="menu-button" type="button" aria-expanded="false" aria-controls="sidebar-nav">Menu</button>
+        <a class="ghost-link" href="https://github.com/sinmb79/Agent-Identity-Layer/tree/main/sdk" target="_blank" rel="noreferrer">SDK Repo</a>
+        <a class="primary-link" href="https://api.agentidcard.org/register" target="_blank" rel="noreferrer">Register Agent</a>
+      </div>
+    </header>
+    <section class="hero">
+      <div class="eyebrow">Powered by Agent ID Card</div>
+      <h1>Integration Guide for Agent Verification</h1>
+      <p>Verify AI agents on your platform with an OAuth-style popup flow, direct JWT validation, embeddable widgets, and first-party SDKs for JavaScript and Python.</p>
+      <div class="hero-meta">
+        <span>Base URL: <code>https://api.agentidcard.org</code></span>
+        <span>Widget assets: <code>/widget.js</code> and <code>/badge.js</code></span>
+      </div>
+    </section>
+    <div class="layout">
+      <aside id="sidebar-nav" class="sidebar">
+        <h2>Guide</h2>
+        <nav>
+          <a href="#quick-start">Quick Start</a>
+          <a href="#authentication-flow">Authentication Flow</a>
+          <a href="#integration-methods">Integration Methods</a>
+          <a href="#exchange-auth-code">Exchanging the Auth Code</a>
+          <a href="#scopes">Scopes</a>
+          <a href="#verified-badge">Verified Badge</a>
+          <a href="#sdk-integration">SDK Integration</a>
+          <a href="#server-side-examples">Server-Side Examples</a>
+          <a href="#offline-verification">Offline Verification</a>
+          <a href="#error-handling">Error Handling</a>
+          <a href="#security-checklist">Security Checklist</a>
+          <a href="#api-reference">API Reference</a>
+          <a href="#support">Support</a>
+        </nav>
+      </aside>
+      <main class="content">
+        <article id="quick-start" class="section">
+          <h2>Quick Start (5 minutes) <a class="anchor-link" href="#quick-start">#</a></h2>
+          <h3>1. Register Your Application</h3>
+          <p>Request a <span class="inline-code">client_id</span> and <span class="inline-code">client_secret</span> by contacting the Agent ID Card team, or use the Admin API.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Register Client</span><button class="copy-button" type="button" data-copy-target="quick-start-register">Copy code</button></div><pre><code id="quick-start-register" data-code="quick-start-register"></code></pre></div>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Register Response</span><button class="copy-button" type="button" data-copy-target="quick-start-register-response">Copy code</button></div><pre><code id="quick-start-register-response" data-code="quick-start-register-response"></code></pre></div>
+          <div class="callout"><strong>Store your client secret on the server only.</strong>Never expose <span class="inline-code">client_secret</span> in frontend code.</div>
+          <h3>2. Add the Widget</h3>
+          <p>Drop a single script tag into your HTML and a "Verify with Agent ID Card" button will appear.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Embed Widget</span><button class="copy-button" type="button" data-copy-target="quick-start-widget">Copy code</button></div><pre><code id="quick-start-widget" data-code="quick-start-widget"></code></pre></div>
+        </article>
+        <article id="authentication-flow" class="section">
+          <h2>Authentication Flow <a class="anchor-link" href="#authentication-flow">#</a></h2>
+          <p>Agent ID Card uses an OAuth 2.0-style authorization code flow. The widget can return data to SPAs by <span class="inline-code">postMessage</span> or use a redirect flow for traditional web apps.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Flow Diagram</span><button class="copy-button" type="button" data-copy-target="auth-flow-diagram">Copy code</button></div><pre><code id="auth-flow-diagram" data-code="auth-flow-diagram"></code></pre></div>
+        </article>
+        <article id="integration-methods" class="section">
+          <h2>Integration Methods <a class="anchor-link" href="#integration-methods">#</a></h2>
+          <h3>Method A: Widget (Recommended for Web Apps)</h3>
+          <p>Use the zero-code script tag or the programmatic widget API for SPAs.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Script Tag</span><button class="copy-button" type="button" data-copy-target="widget-script-tag">Copy code</button></div><pre><code id="widget-script-tag" data-code="widget-script-tag"></code></pre></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Attribute</th><th>Required</th><th>Default</th><th>Options</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">data-client-id</span></td><td>Yes</td><td>-</td><td>Your registered client ID</td></tr>
+                <tr><td><span class="inline-code">data-redirect-uri</span></td><td>Yes</td><td>-</td><td>Must match registered URI</td></tr>
+                <tr><td><span class="inline-code">data-scope</span></td><td>No</td><td><span class="inline-code">identity</span></td><td><span class="inline-code">identity</span>, <span class="inline-code">identity+reputation</span>, <span class="inline-code">full</span></td></tr>
+                <tr><td><span class="inline-code">data-theme</span></td><td>No</td><td><span class="inline-code">dark</span></td><td><span class="inline-code">dark</span>, <span class="inline-code">light</span></td></tr>
+                <tr><td><span class="inline-code">data-size</span></td><td>No</td><td><span class="inline-code">medium</span></td><td><span class="inline-code">small</span>, <span class="inline-code">medium</span>, <span class="inline-code">large</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Programmatic Widget</span><button class="copy-button" type="button" data-copy-target="widget-programmatic">Copy code</button></div><pre><code id="widget-programmatic" data-code="widget-programmatic"></code></pre></div>
+          <h3>Method B: Server-Side Redirect</h3>
+          <p>Redirect the user directly to the authorization page and validate the returned <span class="inline-code">state</span> parameter.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Authorization URL</span><button class="copy-button" type="button" data-copy-target="redirect-method">Copy code</button></div><pre><code id="redirect-method" data-code="redirect-method"></code></pre></div>
+          <p><strong>Always verify the <span class="inline-code">state</span> parameter matches what you sent.</strong></p>
+          <h3>Method C: Direct API (Server-to-Server)</h3>
+          <p>If you already have the agent JWT credential, call the quick verify endpoint directly with your client secret.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Quick Verify</span><button class="copy-button" type="button" data-copy-target="direct-api">Copy code</button></div><pre><code id="direct-api" data-code="direct-api"></code></pre></div>
+        </article>
+        <article id="exchange-auth-code" class="section">
+          <h2>Exchanging the Auth Code <a class="anchor-link" href="#exchange-auth-code">#</a></h2>
+          <p>After receiving an <span class="inline-code">auth_code</span>, exchange it server-side for agent data.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Exchange Request</span><button class="copy-button" type="button" data-copy-target="exchange-request">Copy code</button></div><pre><code id="exchange-request" data-code="exchange-request"></code></pre></div>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Identity Scope Response</span><button class="copy-button" type="button" data-copy-target="exchange-response-identity">Copy code</button></div><pre><code id="exchange-response-identity" data-code="exchange-response-identity"></code></pre></div>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Identity + Reputation Response</span><button class="copy-button" type="button" data-copy-target="exchange-response-reputation">Copy code</button></div><pre><code id="exchange-response-reputation" data-code="exchange-response-reputation"></code></pre></div>
+          <h3>Auth Code Rules</h3>
+          <ul>
+            <li><strong>One-time use:</strong> A code can only be exchanged once.</li>
+            <li><strong>5-minute TTL:</strong> Codes expire 5 minutes after issuance.</li>
+            <li><strong>Origin check:</strong> The <span class="inline-code">Origin</span> header must match your registered <span class="inline-code">allowed_origins</span>.</li>
+            <li><strong>Client verification:</strong> Both <span class="inline-code">client_id</span> and <span class="inline-code">client_secret</span> must be valid.</li>
+          </ul>
+        </article>
+        <article id="scopes" class="section">
+          <h2>Scopes <a class="anchor-link" href="#scopes">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Scope</th><th>Data Returned</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">identity</span></td><td>AIL ID, display name, role, owner org, issued and expires dates</td></tr>
+                <tr><td><span class="inline-code">identity+reputation</span></td><td>Identity plus reputation scores, badges, and achievements count</td></tr>
+                <tr><td><span class="inline-code">full</span></td><td>All available data including revocation status</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article id="verified-badge" class="section">
+          <h2>Verified Badge <a class="anchor-link" href="#verified-badge">#</a></h2>
+          <p>Display a verification badge on your site after a successful check.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Badge Embed</span><button class="copy-button" type="button" data-copy-target="badge-embed">Copy code</button></div><pre><code id="badge-embed" data-code="badge-embed"></code></pre></div>
+          <p>The badge shows <strong>Verified Agent</strong> with the agent's AIL ID and links to their public profile.</p>
+        </article>
+        <article id="sdk-integration" class="section">
+          <h2>SDK Integration <a class="anchor-link" href="#sdk-integration">#</a></h2>
+          <div class="tab-row">
+            <button class="tab-button active" type="button" data-tab-group="sdk" data-tab-target="sdk-js">JavaScript</button>
+            <button class="tab-button" type="button" data-tab-group="sdk" data-tab-target="sdk-python">Python</button>
+          </div>
+          <section id="sdk-js" data-tab-panel="sdk">
+            <div class="code-shell"><div class="code-header"><span class="code-label">Install with npm</span><button class="copy-button" type="button" data-copy-target="sdk-js-install">Copy code</button></div><pre><code id="sdk-js-install" data-code="sdk-js-install"></code></pre></div>
+            <div class="code-shell"><div class="code-header"><span class="code-label">JavaScript SDK</span><button class="copy-button" type="button" data-copy-target="sdk-js-example">Copy code</button></div><pre><code id="sdk-js-example" data-code="sdk-js-example"></code></pre></div>
+          </section>
+          <section id="sdk-python" data-tab-panel="sdk" hidden>
+            <div class="code-shell"><div class="code-header"><span class="code-label">Install with pip</span><button class="copy-button" type="button" data-copy-target="sdk-python-install">Copy code</button></div><pre><code id="sdk-python-install" data-code="sdk-python-install"></code></pre></div>
+            <div class="code-shell"><div class="code-header"><span class="code-label">Python SDK</span><button class="copy-button" type="button" data-copy-target="sdk-python-example">Copy code</button></div><pre><code id="sdk-python-example" data-code="sdk-python-example"></code></pre></div>
+          </section>
+        </article>
+        <article id="server-side-examples" class="section">
+          <h2>Server-Side Examples <a class="anchor-link" href="#server-side-examples">#</a></h2>
+          <div class="tab-row">
+            <button class="tab-button active" type="button" data-tab-group="server" data-tab-target="server-express">Express.js</button>
+            <button class="tab-button" type="button" data-tab-group="server" data-tab-target="server-flask">Flask</button>
+          </div>
+          <section id="server-express" data-tab-panel="server">
+            <div class="code-shell"><div class="code-header"><span class="code-label">Express.js Callback Handler</span><button class="copy-button" type="button" data-copy-target="server-express-example">Copy code</button></div><pre><code id="server-express-example" data-code="server-express-example"></code></pre></div>
+          </section>
+          <section id="server-flask" data-tab-panel="server" hidden>
+            <div class="code-shell"><div class="code-header"><span class="code-label">Flask Callback Handler</span><button class="copy-button" type="button" data-copy-target="server-flask-example">Copy code</button></div><pre><code id="server-flask-example" data-code="server-flask-example"></code></pre></div>
+          </section>
+        </article>
+        <article id="offline-verification" class="section">
+          <h2>Offline Verification <a class="anchor-link" href="#offline-verification">#</a></h2>
+          <p>For server-to-server use without the OAuth flow, verify JWT tokens directly using the public key.</p>
+          <div class="code-shell"><div class="code-header"><span class="code-label">Offline Verification</span><button class="copy-button" type="button" data-copy-target="offline-verification-example">Copy code</button></div><pre><code id="offline-verification-example" data-code="offline-verification-example"></code></pre></div>
+          <p>Public keys endpoint: <span class="inline-code">GET https://api.agentidcard.org/keys</span></p>
+        </article>
+        <article id="error-handling" class="section">
+          <h2>Error Handling <a class="anchor-link" href="#error-handling">#</a></h2>
+          <h3>Auth Code Exchange Errors</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>HTTP</th><th>Error Code</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td>400</td><td><span class="inline-code">missing_fields</span></td><td>Required fields not provided</td></tr>
+                <tr><td>401</td><td><span class="inline-code">invalid_client_credentials</span></td><td>Wrong client_id or client_secret</td></tr>
+                <tr><td>403</td><td><span class="inline-code">origin_not_allowed</span></td><td>Request origin not in allowed_origins</td></tr>
+                <tr><td>403</td><td><span class="inline-code">auth_code_client_mismatch</span></td><td>Code belongs to a different client</td></tr>
+                <tr><td>404</td><td><span class="inline-code">auth_code_not_found</span></td><td>Code does not exist</td></tr>
+                <tr><td>409</td><td><span class="inline-code">auth_code_used</span></td><td>Code already exchanged (one-time use)</td></tr>
+                <tr><td>410</td><td><span class="inline-code">auth_code_expired</span></td><td>Code past 5-minute TTL</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <h3>Verification Errors</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Reason</th><th>Meaning</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">jwt_verification_failed</span></td><td>Invalid or tampered JWT token</td></tr>
+                <tr><td><span class="inline-code">agent_not_found</span></td><td>Agent ID not registered</td></tr>
+                <tr><td><span class="inline-code">credential_revoked</span></td><td>Credential has been revoked by owner</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article id="security-checklist" class="section">
+          <h2>Security Checklist <a class="anchor-link" href="#security-checklist">#</a></h2>
+          <ul class="checklist">
+            <li><span class="checkmark">[ ]</span><span><strong>Never expose <span class="inline-code">client_secret</span> in frontend code</strong> - exchange auth codes server-side only.</span></li>
+            <li><span class="checkmark">[ ]</span><span><strong>Validate <span class="inline-code">state</span> parameter</strong> - prevent CSRF attacks.</span></li>
+            <li><span class="checkmark">[ ]</span><span><strong>Restrict <span class="inline-code">allowed_origins</span></strong> - only include domains you control.</span></li>
+            <li><span class="checkmark">[ ]</span><span><strong>Restrict <span class="inline-code">redirect_uris</span></strong> - only include exact callback URLs.</span></li>
+            <li><span class="checkmark">[ ]</span><span><strong>Handle errors gracefully</strong> - do not expose internal details to users.</span></li>
+            <li><span class="checkmark">[ ]</span><span><strong>Check token expiration</strong> - the <span class="inline-code">expires</span> field indicates when the credential is no longer valid.</span></li>
+            <li><span class="checkmark">[ ]</span><span><strong>Store credentials securely</strong> - use environment variables, not source code.</span></li>
+          </ul>
+        </article>
+        <article id="api-reference" class="section">
+          <h2>API Reference <a class="anchor-link" href="#api-reference">#</a></h2>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Endpoint</th><th>Method</th><th>Auth</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td><span class="inline-code">/auth/clients/register</span></td><td>POST</td><td>Admin API Key</td><td>Register your application</td></tr>
+                <tr><td><span class="inline-code">/auth/verify</span></td><td>GET</td><td>-</td><td>Authorization popup page</td></tr>
+                <tr><td><span class="inline-code">/auth/authorize</span></td><td>POST</td><td>-</td><td>Create auth code (called by popup)</td></tr>
+                <tr><td><span class="inline-code">/auth/exchange</span></td><td>POST</td><td>Client Secret</td><td>Exchange code for agent data</td></tr>
+                <tr><td><span class="inline-code">/auth/verify-quick</span></td><td>GET</td><td>Client Secret</td><td>Direct token verification</td></tr>
+                <tr><td><span class="inline-code">/verify</span></td><td>POST</td><td>-</td><td>Raw JWT verification</td></tr>
+                <tr><td><span class="inline-code">/keys</span></td><td>GET</td><td>-</td><td>Public keys (JWKS) for offline verification</td></tr>
+                <tr><td><span class="inline-code">/widget.js</span></td><td>GET</td><td>-</td><td>Embeddable widget script</td></tr>
+                <tr><td><span class="inline-code">/badge.js</span></td><td>GET</td><td>-</td><td>Verification badge script</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+        <article id="support" class="section">
+          <h2>Support <a class="anchor-link" href="#support">#</a></h2>
+          <ul>
+            <li>Documentation: <a class="anchor-link" href="https://agentidcard.org" target="_blank" rel="noreferrer">https://agentidcard.org</a></li>
+            <li>Agent Profiles: <span class="inline-code">https://agentidcard.org/agent/{ail_id}</span></li>
+            <li>Issues: <a class="anchor-link" href="https://github.com/sinmb79/Agent-Identity-Layer/issues" target="_blank" rel="noreferrer">https://github.com/sinmb79/Agent-Identity-Layer/issues</a></li>
+          </ul>
+        </article>
+      </main>
+    </div>
+    <div class="footer">Powered by Agent ID Card</div>
+  </div>
+  <script>
+    (() => {
+      const codeSnippets = {
+        "quick-start-register": String.raw`curl -X POST https://api.agentidcard.org/auth/clients/register \
+  -H "Content-Type: application/json" \
+  -H "X-Admin-Key: YOUR_ADMIN_KEY" \
+  -d '{
+    "name": "Your App Name",
+    "allowed_origins": ["https://yoursite.com"],
+    "redirect_uris": ["https://yoursite.com/callback"]
+  }'`,
+        "quick-start-register-response": String.raw`{
+  "client_id": "ail_client_abc123...",
+  "client_secret": "ail_secret_xyz789...",
+  "name": "Your App Name",
+  "allowed_origins": ["https://yoursite.com"],
+  "redirect_uris": ["https://yoursite.com/callback"]
+}`,
+        "quick-start-widget": String.raw`<script src="https://agentidcard.org/widget.js"
+        data-client-id="ail_client_abc123..."
+        data-redirect-uri="https://yoursite.com/callback"
+        data-scope="identity"><\/script>`,
+        "auth-flow-diagram": String.raw`Your Site                agentidcard.org            API Server
+---------                ----------------           ----------
+1. User clicks Verify
+   -> 2. Popup opens
+      -> 3. Agent enters JWT credential
+      -> 4. Server validates credential
+      -> 5. Agent clicks Authorize
+   <- 6. Your site receives auth_code via postMessage or redirect
+      -> 7. Your server exchanges auth_code for agent data
+                                             -> 8. Server validates code
+                                          <- 9. JSON response`,
+        "widget-script-tag": String.raw`<script src="https://agentidcard.org/widget.js"
+        data-client-id="YOUR_CLIENT_ID"
+        data-redirect-uri="https://yoursite.com/callback"
+        data-scope="identity"
+        data-theme="dark"
+        data-size="medium"><\/script>`,
+        "widget-programmatic": String.raw`<div id="verify-container"></div>
+<script src="https://agentidcard.org/widget.js"><\/script>
+<script>
+  const widget = new AgentIDCardWidget({
+    clientId: 'YOUR_CLIENT_ID',
+    redirectUri: 'https://yoursite.com/callback',
+    scope: 'identity+reputation',
+    theme: 'dark',
+    onVerified: (result) => {
+      if (result.exchange_required) {
+        fetch('/api/exchange-agent-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: result.code })
+        })
+        .then(res => res.json())
+        .then(agentData => {
+          console.log('Verified agent:', agentData.ail_id);
+        });
+      }
+    },
+    onError: (err) => {
+      console.error('Verification failed:', err.message);
+    }
+  });
+  widget.render('#verify-container');
+<\/script>`,
+        "redirect-method": String.raw`https://api.agentidcard.org/auth/verify
+  ?client_id=YOUR_CLIENT_ID
+  &redirect_uri=https://yoursite.com/callback
+  &scope=identity
+  &state=RANDOM_CSRF_TOKEN
+
+https://yoursite.com/callback?code=auth_code_xxx&state=RANDOM_CSRF_TOKEN`,
+        "direct-api": String.raw`curl "https://api.agentidcard.org/auth/verify-quick?client_id=YOUR_CLIENT_ID&token=JWT_TOKEN" \
+  -H "Authorization: Bearer YOUR_CLIENT_SECRET"`,
+        "exchange-request": String.raw`curl -X POST https://api.agentidcard.org/auth/exchange \
+  -H "Content-Type: application/json" \
+  -H "Origin: https://yoursite.com" \
+  -d '{
+    "code": "auth_code_xxx",
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_CLIENT_SECRET"
+  }'`,
+        "exchange-response-identity": String.raw`{
+  "valid": true,
+  "ail_id": "AIL-2026-000042",
+  "display_name": "AutoTrader-7",
+  "role": "trader",
+  "owner_org": "22BLabs",
+  "issued": "2026-03-17T12:00:00Z",
+  "expires": "2027-03-17T12:00:00Z",
+  "scope": "identity"
+}`,
+        "exchange-response-reputation": String.raw`{
+  "valid": true,
+  "ail_id": "AIL-2026-000042",
+  "display_name": "AutoTrader-7",
+  "role": "trader",
+  "owner_org": "22BLabs",
+  "issued": "2026-03-17T12:00:00Z",
+  "expires": "2027-03-17T12:00:00Z",
+  "scope": "identity+reputation",
+  "reputation": {
+    "overall_score": 78.5,
+    "data_sources": 1,
+    "total_actions": 24,
+    "achievements": 3,
+    "top_skill": "strategic_reasoning",
+    "active_since": "2026-03-18T10:00:00Z",
+    "profile_url": "https://agentidcard.org/agent/AIL-2026-000042",
+    "badges_preview": [
+      { "badge_id": "pioneer", "title": "Pioneer", "rarity": "Common" }
+    ]
+  }
+}`,
+        "badge-embed": String.raw`<div id="ail-badge" data-ail-id="AIL-2026-000042"></div>
+<script src="https://agentidcard.org/badge.js"><\/script>`,
+        "sdk-js-install": String.raw`npm install @agentidcard/sdk`,
+        "sdk-js-example": String.raw`import { AilClient } from '@agentidcard/sdk';
+
+const client = new AilClient({ serverUrl: 'https://api.agentidcard.org' });
+
+const authUrl = client.getAuthUrl({
+  client_id: 'YOUR_CLIENT_ID',
+  redirect_uri: 'https://yoursite.com/callback',
+  scope: 'identity',
+  state: 'random-csrf-token'
+});
+
+const agentData = await client.exchangeAuthCode({
+  code: 'auth_code_xxx',
+  client_id: 'YOUR_CLIENT_ID',
+  client_secret: 'YOUR_CLIENT_SECRET'
+});
+
+const result = await client.verifyQuick({
+  token: 'eyJhbGciOiJFUzI1NiI...',
+  client_id: 'YOUR_CLIENT_ID',
+  client_secret: 'YOUR_CLIENT_SECRET'
+});`,
+        "sdk-python-install": String.raw`pip install agentidcard`,
+        "sdk-python-example": String.raw`from agentidcard import AILClient
+
+client = AILClient(server_url='https://api.agentidcard.org')
+
+auth_url = client.get_auth_url(
+    client_id='YOUR_CLIENT_ID',
+    redirect_uri='https://yoursite.com/callback',
+    scope='identity',
+    state='random-csrf-token'
+)
+
+agent_data = client.exchange_auth_code(
+    code='auth_code_xxx',
+    client_id='YOUR_CLIENT_ID',
+    client_secret='YOUR_CLIENT_SECRET'
+)
+
+result = client.verify_quick(
+    token='eyJhbGciOiJFUzI1NiI...',
+    client_id='YOUR_CLIENT_ID',
+    client_secret='YOUR_CLIENT_SECRET'
+)`,
+        "server-express-example": String.raw`import express from 'express';
+import { AilClient } from '@agentidcard/sdk';
+
+const app = express();
+const ail = new AilClient();
+
+app.get('/callback', async (req, res) => {
+  const { code, state } = req.query;
+
+  if (state !== req.session.ailState) {
+    return res.status(403).send('Invalid state');
+  }
+
+  try {
+    const agent = await ail.exchangeAuthCode({
+      code,
+      client_id: process.env.AIL_CLIENT_ID,
+      client_secret: process.env.AIL_CLIENT_SECRET
+    });
+
+    if (!agent.valid) {
+      return res.status(401).send('Invalid agent credential');
+    }
+
+    req.session.agent = {
+      ail_id: agent.ail_id,
+      display_name: agent.display_name,
+      role: agent.role,
+      owner_org: agent.owner_org
+    };
+
+    res.redirect('/dashboard');
+  } catch (err) {
+    res.status(500).send('Verification failed');
+  }
+});`,
+        "server-flask-example": String.raw`from flask import Flask, request, redirect, session
+from agentidcard import AILClient
+import os
+
+app = Flask(__name__)
+ail = AILClient()
+
+@app.route('/callback')
+def callback():
+    code = request.args.get('code')
+    state = request.args.get('state')
+
+    if state != session.get('ail_state'):
+        return 'Invalid state', 403
+
+    agent = ail.exchange_auth_code(
+        code=code,
+        client_id=os.environ['AIL_CLIENT_ID'],
+        client_secret=os.environ['AIL_CLIENT_SECRET']
+    )
+
+    if not agent.get('valid'):
+        return 'Invalid agent credential', 401
+
+    session['agent'] = {
+        'ail_id': agent['ail_id'],
+        'display_name': agent['display_name'],
+        'role': agent['role'],
+        'owner_org': agent['owner_org']
+    }
+
+    return redirect('/dashboard')`,
+        "offline-verification-example": String.raw`import { AilClient, verifyOffline } from '@agentidcard/sdk';
+
+const client = new AilClient();
+
+const jwks = await client.getPublicKeys();
+
+const result = await verifyOffline(token, jwks.keys[0]);
+// { valid: true, ail_id: "AIL-2026-000042", ... }`,
+      };
+      const menuToggle = document.getElementById("menu-toggle");
+      const sidebar = document.getElementById("sidebar-nav");
+      const backdrop = document.getElementById("nav-backdrop");
+      function escapeHtml(value) {
+        return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+      }
+      function closeSidebar() {
+        sidebar.classList.remove("open");
+        backdrop.classList.remove("open");
+        menuToggle.setAttribute("aria-expanded", "false");
+      }
+      function openSidebar() {
+        sidebar.classList.add("open");
+        backdrop.classList.add("open");
+        menuToggle.setAttribute("aria-expanded", "true");
+      }
+      for (const codeNode of document.querySelectorAll("[data-code]")) {
+        const code = codeSnippets[codeNode.dataset.code] ?? "";
+        codeNode.innerHTML = escapeHtml(code);
+      }
+      for (const copyButton of document.querySelectorAll(".copy-button")) {
+        copyButton.addEventListener("click", async () => {
+          const target = document.getElementById(copyButton.dataset.copyTarget);
+          const original = copyButton.textContent;
+          try {
+            await navigator.clipboard.writeText(target.textContent ?? "");
+            copyButton.textContent = "Copied";
+          } catch {
+            copyButton.textContent = "Copy failed";
+          }
+          window.setTimeout(() => { copyButton.textContent = original; }, 1400);
+        });
+      }
+      for (const groupName of ["sdk", "server"]) {
+        const buttons = [...document.querySelectorAll(`[data-tab-group="${groupName}"]`)];
+        const panels = [...document.querySelectorAll(`[data-tab-panel="${groupName}"]`)];
+        for (const button of buttons) {
+          button.addEventListener("click", () => {
+            for (const current of buttons) {
+              current.classList.toggle("active", current === button);
+            }
+            for (const panel of panels) {
+              panel.hidden = panel.id !== button.dataset.tabTarget;
+            }
+          });
+        }
+      }
+      menuToggle.addEventListener("click", () => {
+        if (sidebar.classList.contains("open")) {
+          closeSidebar();
+          return;
+        }
+        openSidebar();
+      });
+      backdrop.addEventListener("click", closeSidebar);
+      for (const navLink of document.querySelectorAll(".sidebar a")) {
+        navLink.addEventListener("click", closeSidebar);
+      }
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            continue;
+          }
+          for (const link of document.querySelectorAll(".sidebar a")) {
+            link.classList.toggle("active", link.getAttribute("href") === `#${entry.target.id}`);
+          }
+        }
+      }, { rootMargin: "-25% 0px -60% 0px", threshold: 0.1 });
+      for (const section of document.querySelectorAll(".section")) {
+        observer.observe(section);
+      }
+    })();
+  </script>
+</body>
+</html>
