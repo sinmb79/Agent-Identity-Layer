@@ -17,6 +17,7 @@ import { profileRoutes } from "./routes/profile.mjs";
 import { authRoutes } from "./routes/auth.mjs";
 import dashboardHtml from "../server/dashboard.html";
 import registerHtml from "../server/register.html";
+import developersHtml from "../server/developers.html";
 import widgetJs from "../server/widget.js";
 import badgeJs from "../server/badge.js";
 import landingHtml from "../web-page/index.html";
@@ -52,6 +53,9 @@ app.get("/dashboard", (c) => c.html(dashboardHtml));
 
 // Public registration UI
 app.get("/register", (c) => c.html(registerHtml));
+
+// Developer documentation
+app.get("/developers", (c) => c.html(developersHtml));
 
 // Public embeddable assets
 app.get("/widget.js", (c) => {
