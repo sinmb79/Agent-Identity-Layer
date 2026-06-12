@@ -60,6 +60,24 @@ assert.match(
 );
 
 assert.match(
+  developersHtml,
+  /\/agent\/\{ail_id\}\/manifest\.json/,
+  "developers page should document accountability manifest endpoint"
+);
+
+assert.match(
+  developersHtml,
+  /from agentidcard import AilClient/,
+  "developers page should use the correct Python SDK class name"
+);
+
+assert.doesNotMatch(
+  developersHtml,
+  /from agentidcard import AILClient/,
+  "developers page should not reference the old Python SDK class name"
+);
+
+assert.match(
   workersIndex,
   /import developersHtml from "..\/server\/developers\.html";/,
   "workers entry should import developersHtml"

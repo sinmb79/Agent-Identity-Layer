@@ -382,6 +382,8 @@
                 <tr><td><span class="inline-code">/auth/exchange</span></td><td>POST</td><td>Client Secret</td><td>Exchange code for agent data</td></tr>
                 <tr><td><span class="inline-code">/auth/verify-quick</span></td><td>GET</td><td>Client Secret</td><td>Direct token verification</td></tr>
                 <tr><td><span class="inline-code">/verify</span></td><td>POST</td><td>-</td><td>Raw JWT verification</td></tr>
+                <tr><td><span class="inline-code">/agent/{ail_id}/manifest.json</span></td><td>GET</td><td>-</td><td>Accountability manifest with provenance and responsibility chain</td></tr>
+                <tr><td><span class="inline-code">/agent/{ail_id}/card.json</span></td><td>GET</td><td>-</td><td>Machine-readable agent card for partner systems</td></tr>
                 <tr><td><span class="inline-code">/keys</span></td><td>GET</td><td>-</td><td>Public keys (JWKS) for offline verification</td></tr>
                 <tr><td><span class="inline-code">/widget.js</span></td><td>GET</td><td>-</td><td>Embeddable widget script</td></tr>
                 <tr><td><span class="inline-code">/badge.js</span></td><td>GET</td><td>-</td><td>Verification badge script</td></tr>
@@ -542,9 +544,9 @@ const result = await client.verifyQuick({
   client_secret: 'YOUR_CLIENT_SECRET'
 });`,
         "sdk-python-install": String.raw`pip install agentidcard`,
-        "sdk-python-example": String.raw`from agentidcard import AILClient
+        "sdk-python-example": String.raw`from agentidcard import AilClient
 
-client = AILClient(server_url='https://api.agentidcard.org')
+client = AilClient(server_url='https://api.agentidcard.org')
 
 auth_url = client.get_auth_url(
     client_id='YOUR_CLIENT_ID',
@@ -601,11 +603,11 @@ app.get('/callback', async (req, res) => {
   }
 });`,
         "server-flask-example": String.raw`from flask import Flask, request, redirect, session
-from agentidcard import AILClient
+from agentidcard import AilClient
 import os
 
 app = Flask(__name__)
-ail = AILClient()
+ail = AilClient()
 
 @app.route('/callback')
 def callback():

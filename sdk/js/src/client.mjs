@@ -211,6 +211,14 @@ export class AilClient {
     return this.#get(`/reputation/${encodeURIComponent(ailId)}/badges`);
   }
 
+  async getAccountabilityManifest(ailId) {
+    return this.#get(`/agent/${encodeURIComponent(ailId)}/manifest.json`);
+  }
+
+  async getAgentCard(ailId) {
+    return this.#get(`/agent/${encodeURIComponent(ailId)}/card.json`);
+  }
+
   async getSeasonReport(ailId, season, params = {}) {
     return this.#get(
       this.#withQuery(`/reputation/${encodeURIComponent(ailId)}/season/${season}`, params)

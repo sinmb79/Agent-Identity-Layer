@@ -127,6 +127,23 @@ async function main() {
   assert.match(html, /payment_tx_hash:\s*paymentTxHash/, "paid single-agent registrations should send the payment transaction hash");
   assert.match(html, /providers\.find\(\(provider\) => provider\.isMetaMask\)/, "wallet connection should prefer the MetaMask provider");
   assert.match(html, /startAnotherRegistration\(\)/, "result page should keep authenticated users in the add-another flow");
+  assert.match(html, /Accountability Manifest/, "register page should collect accountability manifest fields");
+  assert.match(html, /accountability:\s*buildAccountabilityPayload/, "agent registration should send accountability payload");
+  assert.match(html, /res-accountability/, "result page should show accountability manifest links");
+
+  const schema = fs.readFileSync(path.resolve("workers", "lib", "db.mjs"), "utf8");
+  assert.match(
+    schema,
+    /agent_manifests[\s\S]*REFERENCES agents\(ail_id\) ON DELETE CASCADE/,
+    "accountability manifests should not block agent rollback or owner cleanup"
+  );
+
+  const agentRoutes = fs.readFileSync(path.resolve("workers", "routes", "agents.mjs"), "utf8");
+  assert.match(
+    agentRoutes,
+    /DELETE FROM agent_manifests WHERE ail_id = \?[\s\S]*DELETE FROM agents WHERE ail_id = \?/,
+    "bulk rollback should remove accountability manifests before deleting agents"
+  );
 
   const persistRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ail-register-flow-"));
   const masterKey = {
@@ -158,8 +175,8 @@ async function main() {
 
     const freeOwner = await createEcKeypairJwk();
     const paidOwner = await createEcKeypairJwk();
-    const now = new Date("2026-03-21T11:00:00.000Z").toISOString();
-    const sessionExpiry = new Date("2026-03-22T11:00:00.000Z").toISOString();
+    const now = new Date().toISOString();
+    const sessionExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     sqlite.prepare(`
       INSERT INTO owners (id, email, email_verified, org, public_key_jwk, created_at)

@@ -226,6 +226,12 @@ class AilClient:
     def get_badges(self, ail_id: str) -> dict:
         return self._get(f"/reputation/{ail_id}/badges")
 
+    def get_accountability_manifest(self, ail_id: str) -> dict:
+        return self._get(f"/agent/{ail_id}/manifest.json")
+
+    def get_agent_card(self, ail_id: str) -> dict:
+        return self._get(f"/agent/{ail_id}/card.json")
+
     def get_season_report(self, ail_id: str, season: int, **params) -> dict:
         return self._get(self._with_query(f"/reputation/{ail_id}/season/{season}", params))
 

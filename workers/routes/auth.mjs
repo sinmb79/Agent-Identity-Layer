@@ -199,6 +199,7 @@ authRoutes.post("/auth/authorize", async (c) => {
     db: c.env.DB,
     masterKey,
     token,
+    baseUrl: c.env.AIL_BASE_URL,
   });
 
   if (!verification.valid) {
@@ -336,6 +337,7 @@ authRoutes.get("/auth/verify-quick", async (c) => {
     db: c.env.DB,
     masterKey,
     token,
+    baseUrl: c.env.AIL_BASE_URL,
   });
 
   if (!verification.valid) {
