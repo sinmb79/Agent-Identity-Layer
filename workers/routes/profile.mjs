@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { listAgentBadges } from "../lib/achievements.mjs";
 import { SCORE_DIMENSIONS } from "../lib/scoring.mjs";
+import { loadAccountabilityManifest, loadAgentCard, summarizeAccountability } from "../lib/accountability.mjs";
 
 export const profileRoutes = new Hono();
 
@@ -165,7 +166,31 @@ function renderScoreCards(scores) {
   `).join("");
 }
 
-function renderProfileHtml({ agent, compositeScores, badges, platformRecords, trendPoints }) {
+function renderAccountabilityPanel(accountability) {
+  if (!accountability) {
+    return `<div class="empty-state">No accountability manifest is available yet.</div>`;
+  }
+
+  return `
+    <div class="registration-grid">
+      <div class="registration-card"><span>Creator</span><strong>${escapeHtml(accountability.creator?.name ?? "Unknown")}</strong></div>
+      <div class="registration-card"><span>Operator</span><strong>${escapeHtml(accountability.operator?.name ?? "Unknown")}</strong></div>
+      <div class="registration-card"><span>Risk Class</span><strong>${escapeHtml(accountability.risk_class ?? "unspecified")}</strong></div>
+    </div>
+    <div class="registration-card" style="margin-top:14px;">
+      <span>Declared Purpose</span>
+      <strong style="white-space:normal; line-height:1.55;">${escapeHtml(accountability.purpose ?? "Not declared")}</strong>
+    </div>
+    <div class="badge-meta">
+      ${accountability.responsible_contact ? `<span>Contact ${escapeHtml(accountability.responsible_contact)}</span>` : ""}
+      <span>${escapeHtml(accountability.manifest_hash)}</span>
+      <a href="${escapeHtml(accountability.manifest_url)}" target="_blank" rel="noreferrer"><span>Manifest JSON</span></a>
+      <a href="${escapeHtml(accountability.card_url)}" target="_blank" rel="noreferrer"><span>Agent Card JSON</span></a>
+    </div>
+  `;
+}
+
+function renderProfileHtml({ agent, compositeScores, badges, platformRecords, trendPoints, accountability }) {
   const radarData = buildRadarDataset(compositeScores);
   const profileData = {
     radarLabels: radarData.map((entry) => entry.label),
@@ -351,6 +376,11 @@ function renderProfileHtml({ agent, compositeScores, badges, platformRecords, tr
 
       <div class="stack">
         <section class="panel">
+          <h2>Accountability</h2>
+          ${renderAccountabilityPanel(accountability)}
+        </section>
+
+        <section class="panel">
           <h2>Achievement Showcase</h2>
           <div class="badges-grid">${renderBadgeCards(badges)}</div>
         </section>
@@ -455,9 +485,35 @@ function renderProfileHtml({ agent, compositeScores, badges, platformRecords, tr
 </html>`;
 }
 
+profileRoutes.get("/agent/:ail_id/manifest.json", async (c) => {
+  const ailId = c.req.param("ail_id");
+  const manifest = await loadAccountabilityManifest(c.env.DB, ailId);
+
+  if (!manifest) {
+    return c.json({ error: "agent_not_found" }, 404);
+  }
+
+  c.header("Cache-Control", "public, max-age=300");
+  return c.json(manifest);
+});
+
+profileRoutes.get("/agent/:ail_id/card.json", async (c) => {
+  const ailId = c.req.param("ail_id");
+  const baseUrl = c.env.AIL_BASE_URL ?? "https://api.agentidcard.org";
+  const card = await loadAgentCard(c.env.DB, ailId, { baseUrl });
+
+  if (!card) {
+    return c.json({ error: "agent_not_found" }, 404);
+  }
+
+  c.header("Cache-Control", "public, max-age=300");
+  return c.json(card);
+});
+
 profileRoutes.get("/agent/:ail_id", async (c) => {
   const ailId = c.req.param("ail_id");
   const db = c.env.DB;
+  const baseUrl = c.env.AIL_BASE_URL ?? "https://api.agentidcard.org";
 
   const agent = await db.prepare(`
     SELECT ail_id, display_name, role, provider, model, owner_org, issued_at, nft_image_svg, nft_token_id
@@ -497,6 +553,7 @@ profileRoutes.get("/agent/:ail_id", async (c) => {
   );
   const platformRecords = summarizePlatformRecords(recordRows.results || []);
   const trendPoints = buildTrendPoints(historyRows.results || []);
+  const manifest = await loadAccountabilityManifest(db, ailId);
 
   return c.html(renderProfileHtml({
     agent,
@@ -504,5 +561,6 @@ profileRoutes.get("/agent/:ail_id", async (c) => {
     badges,
     platformRecords,
     trendPoints,
+    accountability: manifest ? summarizeAccountability(manifest, { baseUrl }) : null,
   }));
 });

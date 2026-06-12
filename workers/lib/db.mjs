@@ -176,6 +176,16 @@ export async function initSchema(db) {
       )
     `),
     db.prepare(`
+      CREATE TABLE IF NOT EXISTS agent_manifests (
+        ail_id        TEXT PRIMARY KEY REFERENCES agents(ail_id) ON DELETE CASCADE,
+        manifest_hash TEXT NOT NULL,
+        manifest_json TEXT NOT NULL,
+        card_json     TEXT NOT NULL,
+        created_at    TEXT NOT NULL,
+        updated_at    TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_reputation_agent
       ON reputation_records(agent_id)
     `),
@@ -210,6 +220,10 @@ export async function initSchema(db) {
     db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_payment_receipts_owner
       ON payment_receipts(owner_key_id)
+    `),
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_agent_manifests_hash
+      ON agent_manifests(manifest_hash)
     `),
   ]);
 

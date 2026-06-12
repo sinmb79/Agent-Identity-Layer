@@ -94,7 +94,7 @@ async function main() {
     sqlite = new DatabaseSync(dbPath);
     sqlite.exec("PRAGMA foreign_keys = ON");
 
-    const now = new Date("2026-03-21T10:00:00.000Z");
+    const now = new Date();
     const activeExpiry = new Date(now.getTime() + (24 * 60 * 60 * 1000)).toISOString();
     const expiredAt = new Date(now.getTime() - (60 * 1000)).toISOString();
 

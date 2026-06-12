@@ -1,5 +1,6 @@
 import { verifyCredentialJWT } from "./crypto.mjs";
 import { listAgentBadges } from "./achievements.mjs";
+import { loadAccountabilityManifest, summarizeAccountability } from "./accountability.mjs";
 
 function parseJson(text, fallback = null) {
   try {
@@ -9,7 +10,7 @@ function parseJson(text, fallback = null) {
   }
 }
 
-export async function buildVerificationResult({ db, masterKey, token }) {
+export async function buildVerificationResult({ db, masterKey, token, baseUrl }) {
   let payload;
   try {
     const result = await verifyCredentialJWT(token, masterKey);
@@ -62,6 +63,7 @@ export async function buildVerificationResult({ db, masterKey, token }) {
     `).bind(agent.ail_id).first(),
     listAgentBadges(db, agent.ail_id),
   ]);
+  const manifest = await loadAccountabilityManifest(db, agent.ail_id);
 
   const reputationRecords = recordRows.results || [];
   let reputation = null;
@@ -108,6 +110,7 @@ export async function buildVerificationResult({ db, masterKey, token }) {
     issued: new Date(payload.iat * 1000).toISOString(),
     expires: new Date(payload.exp * 1000).toISOString(),
     revoked: false,
+    accountability: manifest ? summarizeAccountability(manifest, { baseUrl }) : null,
     reputation,
   };
 }
@@ -121,6 +124,7 @@ export function filterVerificationResult(result, scope = "identity") {
     owner_org: result.owner_org,
     issued: result.issued,
     expires: result.expires,
+    accountability: result.accountability,
     scope,
   };
 

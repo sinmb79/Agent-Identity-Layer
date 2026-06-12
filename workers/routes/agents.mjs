@@ -7,6 +7,12 @@ import {
   computeScopeHash,
   issueCredentialJWT,
 } from "../lib/crypto.mjs";
+import {
+  buildAccountabilityManifest,
+  buildAgentCard,
+  saveAgentManifest,
+  summarizeAccountability,
+} from "../lib/accountability.mjs";
 import { generateIdCardSvg, generateNftMetadata } from "../lib/image-generator.mjs";
 import { mintAgent, revokeAgent as revokeOnChain, isChainEnabled } from "../lib/chain.mjs";
 
@@ -60,7 +66,7 @@ function formatUsd(amount) {
   return Number(amount).toFixed(2);
 }
 
-function buildCredentialResponse({ ail_id, masterKey, issuedAtStr, expiresAtStr, token, signal_glyph, behavior_fingerprint, nft, issuer }) {
+function buildCredentialResponse({ ail_id, masterKey, issuedAtStr, expiresAtStr, token, signal_glyph, behavior_fingerprint, nft, issuer, accountability }) {
   return {
     ail_id,
     credential: {
@@ -73,6 +79,7 @@ function buildCredentialResponse({ ail_id, masterKey, issuedAtStr, expiresAtStr,
     },
     signal_glyph,
     behavior_fingerprint,
+    accountability,
     nft_image_url: `/agents/${ail_id}/image`,
     nft_metadata_url: `/agents/${ail_id}/metadata`,
     ...(nft.token_id && { nft: { token_id: nft.token_id, tx_hash: nft.tx_hash } }),
@@ -339,6 +346,7 @@ async function createAgentRegistration({
   const { token, issuedAt, expiresAt } = await issueCredentialJWT(jwtClaims, masterKey, issuer);
   const issuedAtStr = issuedAt.toISOString();
   const expiresAtStr = expiresAt.toISOString();
+  const baseUrl = env.AIL_BASE_URL ?? "https://api.agentidcard.org";
 
   const agentDataForImage = {
     ail_id,
@@ -376,9 +384,28 @@ async function createAgentRegistration({
     nft_image_svg
   ).run();
 
+  const manifest = await buildAccountabilityManifest({
+    ail_id,
+    display_name,
+    role,
+    provider,
+    model,
+    owner_key_id,
+    owner_org,
+    scope,
+    scope_hash,
+    behavior_fingerprint: behavior_fingerprint.hash,
+    issued_at: issuedAtStr,
+    expires_at: expiresAtStr,
+    issuer,
+    accountability: payload.accountability,
+  });
+  const agentCard = buildAgentCard(manifest, { baseUrl });
+  await saveAgentManifest(db, { manifest, card: agentCard });
+  const accountabilitySummary = summarizeAccountability(manifest, { baseUrl });
+
   let nft = { token_id: null, tx_hash: null };
   if (isChainEnabled(env)) {
-    const baseUrl = env.AIL_BASE_URL ?? "";
     const metadataUri = `${baseUrl}/agents/${ail_id}/metadata`;
     const chainResult = await mintAgent(env, ail_id, wallet_address, metadataUri);
 
@@ -409,6 +436,7 @@ async function createAgentRegistration({
       behavior_fingerprint,
       nft,
       issuer,
+      accountability: accountabilitySummary,
     }),
   };
 }
@@ -424,6 +452,7 @@ async function rollbackBulkRegistrations(db, env, createdAgents) {
     }
 
     try {
+      await db.prepare("DELETE FROM agent_manifests WHERE ail_id = ?").bind(agent.ail_id).run();
       await db.prepare("DELETE FROM agents WHERE ail_id = ?").bind(agent.ail_id).run();
     } catch (err) {
       console.error(`[bulk] failed to delete ${agent.ail_id}:`, err.message);

@@ -413,6 +413,34 @@
         <input type="text" id="model" placeholder="claude-sonnet-4-6">
 
         <div class="divider"></div>
+        <label style="margin-top:0">Accountability Manifest</label>
+        <p class="hint" style="margin-bottom:12px;">
+          Record who created this agent, where it runs, and why it exists.
+        </p>
+        <label for="accountability-contact">Responsible Contact</label>
+        <input type="email" id="accountability-contact" placeholder="security@example.com">
+
+        <label for="accountability-operator">Operator / Team</label>
+        <input type="text" id="accountability-operator" placeholder="Marketplace Ops">
+
+        <label for="accountability-deployment">Deployment URL</label>
+        <input type="url" id="accountability-deployment" placeholder="https://example.com/agents/my-agent">
+
+        <label for="accountability-purpose">Declared Purpose</label>
+        <textarea id="accountability-purpose" rows="3" placeholder="What this agent is intended to do."></textarea>
+
+        <label for="accountability-tools">Tools / Capabilities (comma separated)</label>
+        <input type="text" id="accountability-tools" placeholder="search, reputation_lookup, marketplace_scan">
+
+        <label for="accountability-risk">Risk Class</label>
+        <select id="accountability-risk">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+
+        <div class="divider"></div>
         <label style="margin-top:0">Scope &amp; Permissions</label>
         <div class="scope-grid">
           <label><input type="checkbox" id="scope-network"> Network Access</label>
@@ -484,6 +512,11 @@
         <div class="result-item">
           <div class="label">Behavior Fingerprint</div>
           <div class="value" id="res-fingerprint"></div>
+        </div>
+
+        <div class="result-item">
+          <div class="label">Accountability Manifest</div>
+          <div class="value" id="res-accountability" style="font-size:12px;"></div>
         </div>
 
         <div class="result-item">
@@ -1414,6 +1447,66 @@ async function verifyEmail() {
   }
 }
 
+function commaList(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getOwnerOrgFallback() {
+  return ownerData?.owner?.org || ownerData?.org || 'Independent';
+}
+
+function hostnameFromUrl(value) {
+  try {
+    return value ? new URL(value).hostname : window.location.hostname;
+  } catch {
+    return window.location.hostname;
+  }
+}
+
+function buildAccountabilityPayload({ display_name, role, provider, model }) {
+  const contact = document.getElementById('accountability-contact')?.value.trim() || '';
+  const operator = document.getElementById('accountability-operator')?.value.trim() || getOwnerOrgFallback();
+  const deploymentUrl = document.getElementById('accountability-deployment')?.value.trim() || '';
+  const purpose = document.getElementById('accountability-purpose')?.value.trim()
+    || `${display_name} is registered as a ${role} agent.`;
+  const tools = commaList(document.getElementById('accountability-tools')?.value);
+  const riskClass = document.getElementById('accountability-risk')?.value || 'medium';
+  const originDomain = hostnameFromUrl(deploymentUrl);
+
+  return {
+    creator: {
+      name: getOwnerOrgFallback(),
+      type: ownerData?.owner?.org || ownerData?.org ? 'organization' : 'owner',
+      ...(contact && { contact }),
+    },
+    operator: {
+      name: operator,
+      ...(contact && { contact }),
+      ...(deploymentUrl && { url: deploymentUrl }),
+    },
+    origin: {
+      domain: originDomain,
+      ...(deploymentUrl && { deployment_url: deploymentUrl }),
+      runtime: 'web',
+    },
+    purpose: {
+      declared: purpose,
+      intended_users: ['site operators', 'agent users'],
+      prohibited_uses: ['credential theft', 'unauthorized autonomous payments'],
+      risk_class: riskClass,
+    },
+    capabilities: {
+      tools,
+      ...(deploymentUrl && { external_endpoints: [deploymentUrl] }),
+      provider,
+      model,
+    },
+  };
+}
+
 // ── Step 4: Create Agent ──
 async function createAgent() {
   hideError('step4-error');
@@ -1443,6 +1536,7 @@ async function createAgent() {
         destructive_file_ops: 'auto',
       },
     },
+    accountability: buildAccountabilityPayload({ display_name, role, provider, model }),
     // Pass wallet address and plan for NFT minting
     ...(walletAddress && { wallet_address: walletAddress }),
     plan: selectedPlan,
@@ -1539,6 +1633,30 @@ function showResult(data) {
   const fp = data.behavior_fingerprint;
   document.getElementById('res-fingerprint').textContent =
     typeof fp === 'string' ? fp : (fp?.hash || JSON.stringify(fp) || '-');
+  const accountabilityBox = document.getElementById('res-accountability');
+  accountabilityBox.innerHTML = '';
+  if (data.accountability?.manifest_url) {
+    const manifestLink = document.createElement('a');
+    manifestLink.href = data.accountability.manifest_url;
+    manifestLink.target = '_blank';
+    manifestLink.rel = 'noreferrer';
+    manifestLink.textContent = data.accountability.manifest_hash || 'View manifest';
+    manifestLink.style.color = 'var(--accent)';
+    accountabilityBox.appendChild(manifestLink);
+
+    if (data.accountability.card_url) {
+      accountabilityBox.appendChild(document.createElement('br'));
+      const cardLink = document.createElement('a');
+      cardLink.href = data.accountability.card_url;
+      cardLink.target = '_blank';
+      cardLink.rel = 'noreferrer';
+      cardLink.textContent = 'View agent card JSON';
+      cardLink.style.color = 'var(--accent)';
+      accountabilityBox.appendChild(cardLink);
+    }
+  } else {
+    accountabilityBox.textContent = '-';
+  }
   document.getElementById('res-owner-key').textContent = ownerData.owner_key_id;
   document.getElementById('res-private-key').textContent = ownerData.private_key_jwk
     ? JSON.stringify(ownerData.private_key_jwk)
@@ -1600,6 +1718,12 @@ function resetForm() {
   document.getElementById('otp').value = '';
   document.getElementById('display_name').value = '';
   document.getElementById('model').value = '';
+  document.getElementById('accountability-contact').value = '';
+  document.getElementById('accountability-operator').value = '';
+  document.getElementById('accountability-deployment').value = '';
+  document.getElementById('accountability-purpose').value = '';
+  document.getElementById('accountability-tools').value = '';
+  document.getElementById('accountability-risk').value = 'medium';
   document.getElementById('login-email').value = '';
   document.getElementById('login-otp').value = '';
   document.getElementById('step-login-otp').classList.add('hidden');
@@ -1850,6 +1974,7 @@ async function createAgent() {
         destructive_file_ops: 'auto',
       },
     },
+    accountability: buildAccountabilityPayload({ display_name, role, provider, model }),
     ...(walletAddress && { wallet_address: walletAddress }),
     ...(paymentTxHash && { payment_tx_hash: paymentTxHash }),
     plan: selectedPlan,
@@ -2004,6 +2129,12 @@ function resetForm() {
   document.getElementById('otp').value = '';
   document.getElementById('display_name').value = '';
   document.getElementById('model').value = '';
+  document.getElementById('accountability-contact').value = '';
+  document.getElementById('accountability-operator').value = '';
+  document.getElementById('accountability-deployment').value = '';
+  document.getElementById('accountability-purpose').value = '';
+  document.getElementById('accountability-tools').value = '';
+  document.getElementById('accountability-risk').value = 'medium';
   document.getElementById('login-email').value = '';
   document.getElementById('login-otp').value = '';
   document.getElementById('step-login-otp').classList.add('hidden');

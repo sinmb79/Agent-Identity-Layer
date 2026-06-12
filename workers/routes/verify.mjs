@@ -16,6 +16,7 @@ verifyRoutes.post("/verify", async (c) => {
     db: c.env.DB,
     masterKey,
     token,
+    baseUrl: c.env.AIL_BASE_URL,
   }));
 });
 

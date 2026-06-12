@@ -34,6 +34,7 @@ export interface AgentRegistrationOptions {
   scope: Record<string, unknown>;
   wallet_address?: string;
   plan?: string;
+  accountability?: Record<string, unknown>;
 }
 
 export interface CredentialResponse {
@@ -41,6 +42,7 @@ export interface CredentialResponse {
   credential: Record<string, unknown>;
   signal_glyph: Record<string, unknown>;
   behavior_fingerprint: Record<string, unknown>;
+  accountability?: Record<string, unknown>;
   nft_image_url?: string;
   nft_metadata_url?: string;
   nft?: {
@@ -129,6 +131,8 @@ export declare class AilClient {
   compareAgents(ailId: string, otherAilId: string): Promise<Record<string, unknown>>;
   getLeaderboard(params?: ReputationQueryParams): Promise<Record<string, unknown>>;
   getBadges(ailId: string): Promise<Record<string, unknown>>;
+  getAccountabilityManifest(ailId: string): Promise<Record<string, unknown>>;
+  getAgentCard(ailId: string): Promise<Record<string, unknown>>;
   getSeasonReport(ailId: string, season: number, params?: { source?: string }): Promise<Record<string, unknown>>;
   awardBadge(options: {
     source_name: string;
